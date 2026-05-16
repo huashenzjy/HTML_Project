@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyHub — SDET + English Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+    <style>
+        :root {
+            --bg: #F4F0FA;
+            --card-bg: rgba(255, 255, 255, 0.78);
+            --card-border: rgba(255, 255, 255, 0.55);
+            --purple: #7C5CFC;
+            --purple-dark: #5E3FD9;
+            --purple-light: #A78BFA;
+            --purple-glow: rgba(124, 92, 252, 0.25);
+            --green: #10B981;
+            --green-bg: #D1FAE5;
+            --amber: #F59E0B;
+            --amber-bg: #FEF3C7;
+            --red: #EF4444;
+            --red-bg: #FEE2E2;
+            --text: #1E1B2E;
+            --text-secondary: #5A5672;
+            --text-muted: #8B87A0;
+            --shadow-sm: 0 1px 3px rgba(30, 27, 46, 0.06), 0 1px 2px rgba(30, 27, 46, 0.04);
+            --shadow-md: 0 4px 16px rgba(30, 27, 46, 0.07), 0 2px 6px rgba(30, 27, 46, 0.04);
+            --shadow-lg: 0 12px 32px rgba(30, 27, 46, 0.10), 0 4px 10px rgba(30, 27, 46, 0.05);
+            --shadow-xl: 0 20px 48px rgba(30, 27, 46, 0.13), 0 6px 16px rgba(30, 27, 46, 0.06);
+            --radius-sm: 10px;
+            --radius: 16px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --font-xs: clamp(0.7rem, 1.5vw, 0.78rem);
+            --font-sm: clamp(0.8rem, 1.7vw, 0.88rem);
+            --font-base: clamp(0.9rem, 1.9vw, 0.98rem);
+            --font-md: clamp(1rem, 2.2vw, 1.12rem);
+            --font-lg: clamp(1.15rem, 2.6vw, 1.35rem);
+            --font-xl: clamp(1.4rem, 3.2vw, 1.7rem);
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            padding: clamp(12px, 3vw, 28px);
+            background-image: radial-gradient(ellipse at 15% 10%, rgba(124, 92, 252, 0.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 82% 75%, rgba(124, 92, 252, 0.05) 0%, transparent 55%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(14px, 2.5vw, 22px);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: clamp(16px, 3vw, 24px);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            transition: box-shadow var(--transition-slow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: clamp(8px, 2vw, 16px);
+            justify-content: space-between;
+            padding: clamp(10px, 2vw, 16px) clamp(14px, 3vw, 22px);
+            border-radius: var(--radius-xl);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .top-bar__left {
+            display: flex;
+            align-items: center;
+            gap: clamp(8px, 2vw, 14px);
+            flex-wrap: wrap;
+        }
+
+        .top-bar__right {
+            display: flex;
+            align-items: center;
+            gap: clamp(6px, 1.5vw, 12px);
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: var(--font-lg);
+            color: var(--purple);
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+        }
+
+        .logo span {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .plan-tabs {
+            display: flex;
+            gap: 4px;
+            background: #EDE9FE;
+            border-radius: 999px;
+            padding: 3px;
+        }
+
+        .plan-tab {
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: var(--font-sm);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            transition: all var(--transition);
+            white-space: nowrap;
+            font-family: inherit;
+            min-height: 38px;
+        }
+
+        .plan-tab--active {
+            background: #fff;
+            color: var(--purple);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .plan-tab:active {
+            transform: scale(0.95);
+        }
+
+        .streak-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            color: #92400E;
+            font-weight: 700;
+            font-size: var(--font-sm);
+            padding: 7px 14px;
+            border-radius: 999px;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition);
+        }
+
+        .streak-badge.pop {
+            animation: streakPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes streakPop {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            25% {
+                transform: scale(1.28);
+            }
+            60% {
+                transform: scale(0.94);
+            }
+            80% {
+                transform: scale(1.06);
+            }
+        }
+
+        .streak-badge svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .sync-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: var(--font-xs);
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .sync-badge--synced {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .sync-badge--syncing {
+            background: #FEF3C7;
+            color: #92400E;
+            animation: pulseSync 0.8s infinite;
+        }
+
+        .sync-badge--failed {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .sync-badge--offline {
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+
+        @keyframes pulseSync {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.55;
+            }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: clamp(8px, 1.5vw, 11px) clamp(14px, 2.5vw, 20px);
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: var(--font-sm);
+            cursor: pointer;
+            border: none;
+            transition: all var(--transition);
+            white-space: nowrap;
+            font-family: inherit;
+            min-height: 44px;
+            min-width: 44px;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn--primary {
+            background: var(--purple);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(124, 92, 252, 0.3);
+        }
+
+        .btn--primary:hover {
+            background: var(--purple-dark);
+            box-shadow: 0 4px 16px rgba(124, 92, 252, 0.4);
+        }
+
+        .btn--primary:active {
+            background: #4C2FB8;
+        }
+
+        .btn--outline {
+            background: transparent;
+            border: 2px solid var(--purple);
+            color: var(--purple);
+        }
+
+        .btn--outline:hover {
+            background: rgba(124, 92, 252, 0.06);
+        }
+
+        .btn--ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+        }
+
+        .btn--ghost:hover {
+            background: rgba(124, 92, 252, 0.05);
+            color: var(--purple);
+        }
+
+        .btn--danger {
+            background: var(--red);
+            color: #fff;
+        }
+
+        .btn--danger:hover {
+            background: #DC2626;
+        }
+
+        .btn--sm {
+            padding: 6px 12px;
+            font-size: var(--font-xs);
+            min-height: 34px;
+            border-radius: 999px;
+        }
+
+        .btn--copy {
+            background: #EDE9FE;
+            color: var(--purple-dark);
+            border: 1px solid rgba(124, 92, 252, 0.2);
+        }
+
+        .btn--copied {
+            background: #D1FAE5 !important;
+            color: #065F46 !important;
+            border-color: #10B981 !important;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: clamp(16px, 4vw, 28px);
+            right: clamp(16px, 4vw, 28px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #1E1B2E;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 999px;
+            font-size: var(--font-sm);
+            font-weight: 500;
+            box-shadow: var(--shadow-xl);
+            pointer-events: auto;
+            animation: toastIn 0.3s cubic-bezier(0.4, 0, 0.2, 1), toastOut 0.3s 3.2s forwards;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast--success {
+            border-left: 3px solid var(--green);
+        }
+
+        .toast--error {
+            border-left: 3px solid var(--red);
+        }
+
+        .toast--info {
+            border-left: 3px solid var(--purple);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.9);
+            }
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: var(--font-lg);
+            color: var(--text);
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            font-size: var(--font-sm);
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+            gap: clamp(12px, 2.5vw, 20px);
+        }
+
+        .grid--2col {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        @media(max-width:720px) {
+            .grid--2col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .progress-wrap {
+            margin-top: 8px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--font-xs);
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            height: 10px;
+            border-radius: 999px;
+            background: #E8E4F4;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(30, 27, 46, 0.08);
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--purple), #9B7CFC);
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px var(--purple-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .ring-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ring-svg {
+            width: clamp(40px, 7vw, 52px);
+            height: clamp(40px, 7vw, 52px);
+            flex-shrink: 0;
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: #E8E4F4;
+            stroke-width: 6;
+        }
+
+        .ring-fill {
+            fill: none;
+            stroke: var(--purple);
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.6s;
+            filter: drop-shadow(0 0 4px var(--purple-glow));
+        }
+
+        .ring-text {
+            font-weight: 700;
+            font-size: var(--font-sm);
+            color: var(--purple);
+        }
+
+        .task-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            transition: background var(--transition);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 44px;
+        }
+
+        .task-item:hover {
+            background: rgba(124, 92, 252, 0.04);
+        }
+
+        .task-item--priority {
+            border-left: 3px solid var(--purple);
+            background: rgba(124, 92, 252, 0.03);
+        }
+
+        .task-checkbox {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid #C4BFD6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-top: 2px;
+            background: #fff;
+        }
+
+        .task-checkbox.checked {
+            background: var(--green);
+            border-color: var(--green);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .task-checkbox.checked svg {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .task-checkbox svg {
+            width: 13px;
+            height: 13px;
+            color: #fff;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all var(--transition);
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: var(--font-base);
+            line-height: 1.5;
+            transition: all var(--transition);
+        }
+
+        .task-text.done {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .task-how {
+            font-size: var(--font-xs);
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-style: italic;
+        }
+
+        .task-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 999px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .task-badge--must {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .week-tabs {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 4px 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .week-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .week-tab {
+            flex-shrink: 0;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: var(--font-xs);
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: transparent;
+            color: var(--text-muted);
+            transition: all var(--transition);
+            white-space: nowrap;
+            font-family: inherit;
+            min-height: 38px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .week-tab:active {
+            transform: scale(0.94);
+        }
+
+        .week-tab--active {
+            background: var(--purple);
+            color: #fff;
+            border-color: var(--purple);
+            box-shadow: 0 2px 8px rgba(124, 92, 252, 0.3);
+        }
+
+        .week-tab--buffer {
+            border-color: #E8E4F4;
+            background: #FAF8FD;
+            color: var(--text-secondary);
+        }
+
+        .week-tab--buffer.week-tab--active {
+            background: var(--amber);
+            color: #92400E;
+            border-color: var(--amber);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            text-align: center;
+        }
+
+        .calendar-day-header {
+            font-weight: 600;
+            font-size: var(--font-xs);
+            color: var(--text-muted);
+            padding: 6px 0;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: var(--font-xs);
+            font-weight: 500;
+            transition: all var(--transition);
+            position: relative;
+            min-width: 30px;
+            min-height: 30px;
+        }
+
+        .calendar-day--today {
+            background: var(--purple);
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(124, 92, 252, 0.35);
+        }
+
+        .calendar-day--completed {
+            background: #D1FAE5;
+            color: #065F46;
+            font-weight: 600;
+        }
+
+        .calendar-day--completed::after {
+            content: '✓';
+            font-size: 0.65em;
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: var(--green);
+            color: #fff;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .calendar-day--other {
+            color: #D1CFDB;
+        }
+
+        .collapsible-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: var(--font-sm);
+            color: var(--purple);
+            background: none;
+            border: none;
+            font-family: inherit;
+            padding: 6px 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .collapsible-toggle:hover {
+            color: var(--purple-dark);
+        }
+
+        .collapsible-toggle:active {
+            transform: scale(0.96);
+        }
+
+        .collapsible-arrow {
+            transition: transform var(--transition-slow);
+            display: inline-block;
+        }
+
+        .collapsible-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            overflow: hidden;
+            transition: max-height var(--transition-slow), opacity var(--transition-slow);
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .collapsible-content.open {
+            max-height: 3000px;
+            opacity: 1;
+        }
+
+        .commit-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .commit-form input {
+            flex: 1 1 150px;
+            padding: 11px 16px;
+            border-radius: 999px;
+            border: 2px solid #E0DCF0;
+            font-size: var(--font-sm);
+            font-family: inherit;
+            background: #fff;
+            min-height: 44px;
+            min-width: 120px;
+        }
+
+        .commit-form input:focus {
+            outline: none;
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.1);
+        }
+
+        @media(max-width:480px) {
+            .commit-form {
+                flex-direction: column;
+            }
+            .commit-form input {
+                flex: 1 1 auto;
+                width: 100%;
+            }
+            .commit-form .btn {
+                width: 100%;
+            }
+        }
+
+        .countdown-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .countdown-btn__ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            pointer-events: none;
+            border: 3px solid transparent;
+        }
+
+        .countdown-btn.counting .countdown-btn__ring {
+            border-color: var(--purple-light);
+            animation: countdownRing 5s linear forwards;
+        }
+
+        @keyframes countdownRing {
+            0% {
+                clip-path: inset(0 0 0 0);
+            }
+            100% {
+                clip-path: inset(0 0 100% 0);
+            }
+        }
+
+        .card--week-complete {
+            animation: weekGlow 0.7s ease-out;
+        }
+
+        @keyframes weekGlow {
+            0% {
+                box-shadow: 0 0 0 rgba(16, 185, 129, 0), var(--shadow-md);
+            }
+            40% {
+                box-shadow: 0 0 40px rgba(16, 185, 129, 0.35), 0 0 0 8px rgba(16, 185, 129, 0.1), var(--shadow-lg);
+            }
+            100% {
+                box-shadow: var(--shadow-md);
+            }
+        }
+
+        .stage-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            font-size: var(--font-xs);
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .stage-indicator--1 {
+            background: #EDE9FE;
+            color: #5B21B6;
+        }
+
+        .stage-indicator--2 {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .stage-indicator--3 {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            font-size: var(--font-xs);
+            padding: 5px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .status-label--not-started {
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+
+        .status-label--in-progress {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-label--completed {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .server-note {
+            font-size: var(--font-xs);
+            color: var(--text-muted);
+            background: #FAF8FD;
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            border: 1px dashed #E0DCF0;
+            line-height: 1.5;
+        }
+
+        .server-note code {
+            background: #EDE9FE;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: var(--purple-dark);
+        }
+
+        .reward-box {
+            background: linear-gradient(135deg, #FFF7ED, #FFFBEB);
+            border: 1px solid #FDE68A;
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            font-size: var(--font-sm);
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        .reward-box strong {
+            color: #92400E;
+        }
+
+        .never-miss-note {
+            background: #FEF2F2;
+            border-left: 3px solid #EF4444;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-xs);
+            color: #991B1B;
+            font-weight: 500;
+            margin-top: 6px;
+        }
+
+        .prompt-box {
+            background: #1E1B2E;
+            color: #E8E4F4;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-xs);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.6;
+            margin-top: 8px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .hint-banner {
+            background: linear-gradient(135deg, #EDE9FE, #F4F0FA);
+            border-radius: var(--radius);
+            padding: 12px 18px;
+            font-size: var(--font-sm);
+            color: var(--purple-dark);
+            font-weight: 500;
+            text-align: center;
+            animation: hintIn 0.4s;
+            border: 1px solid rgba(124, 92, 252, 0.15);
+        }
+
+        @keyframes hintIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--purple-light);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: var(--font-sm);
+            font-weight: 500;
+        }
+
+        .firestore-hint {
+            background: #FFF7ED;
+            border-left: 4px solid #F97316;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-xs);
+            color: #9A3412;
+            margin-top: 8px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        @media(max-width:380px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .top-bar__right {
+                justify-content: center;
+            }
+            .top-bar__left {
+                justify-content: center;
+            }
+            .calendar-day {
+                font-size: 0.65rem;
+                min-width: 24px;
+                min-height: 24px;
+            }
+            .calendar-day--completed::after {
+                width: 10px;
+                height: 10px;
+                font-size: 0.5em;
+                top: -1px;
+                right: -1px;
+            }
+        }
+
+        .plan-panel {
+            display: none;
+        }
+
+        .plan-panel--active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div aria-live="polite" aria-atomic="true" class="sr-only" id="srAnnouncer"></div>
+        <div class="toast-container" id="toastContainer"></div>
+
+        <header class="top-bar" role="banner">
+            <div class="top-bar__left">
+                <div class="logo">Study<span>Hub</span></div>
+                <div class="plan-tabs" id="planTabs">
+                    <button class="plan-tab plan-tab--active" data-plan="sdet">💻 SDET</button>
+                    <button class="plan-tab" data-plan="english">📖 English</button>
+                </div>
+                <div class="streak-badge" id="streakBadge" title="Total study streak">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.66 8L12 2.35 6.34 8A8.02 8.02 0 004 13.64c0 4.42 3.58 8 8 8s8-3.58 8-8c0-2.12-.82-4.12-2.34-5.64zM12 18.5c-2.48 0-4.5-2.02-4.5-4.5 0-1.68.98-3.22 2.5-3.94V18.5h4V10.06c1.52.72 2.5 2.26 2.5 3.94 0 2.48-2.02 4.5-4.5 4.5z"/></svg>
+                    <span id="streakCount">0</span> day streak
+                </div>
+            </div>
+            <div class="top-bar__right">
+                <span class="sync-badge sync-badge--offline" id="syncBadge">⚫ Offline</span>
+                <button class="btn btn--ghost btn--sm" id="manualSyncBtn">↻ Sync</button>
+                <span class="user-info" id="userInfo"></span>
+                <button class="btn btn--outline btn--sm" id="loginBtn">Google Login</button>
+                <button class="btn btn--ghost btn--sm" id="logoutBtn" style="display:none">Logout</button>
+            </div>
+        </header>
+
+        <div id="hintArea"></div>
+
+        <!-- SDET PLAN PANEL -->
+        <div class="plan-panel plan-panel--active" id="sdetPanel">
+            <div class="grid grid--2col">
+                <div class="card" id="sdetWeekCard" style="grid-row:span 2">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+                        <div><h2 class="section-title" id="sdetWeekTitle">Loading...</h2><p class="section-subtitle" id="sdetWeekGoal"></p></div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="status-label status-label--not-started" id="sdetWeekStatus">Not started</span><span class="stage-indicator stage-indicator--1" id="sdetStageIndicator">Stage 1</span></div>
+                    </div>
+                    <div class="week-tabs" id="sdetWeekTabs"></div>
+                    <div class="progress-wrap"><div class="progress-label"><span>Weekly progress</span><span id="sdetWeekProgressText">0/5</span></div><div class="progress-bar"><div class="progress-fill" id="sdetWeekProgressBar" style="width:0%"></div></div></div>
+                    <ul class="task-list" id="sdetTaskList"></ul>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+                        <button class="btn btn--ghost btn--sm" id="sdetResetToday">↺ Reset Today</button>
+                        <button class="btn btn--ghost btn--sm" id="sdetResetWeek">↺ Reset Week</button>
+                        <button class="btn btn--ghost btn--sm" id="sdetResetAll">↺ Reset All</button>
+                    </div>
+                    <div class="never-miss-note">⚡ <strong>Never miss two days in a row.</strong> Minimum: 30 minutes.</div>
+                </div>
+                <div class="card"><h3 class="section-title" style="font-size:var(--font-md)">📅 Study Calendar</h3><div class="calendar-grid" id="calendarGrid"></div><div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div class="ring-wrap"><svg class="ring-svg" viewBox="0 0 52 52"><circle class="ring-bg" cx="26" cy="26" r="22"/><circle class="ring-fill" id="ringCircle" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="138.23"/></svg><span class="ring-text" id="ringLabel">0%</span></div><div><strong style="font-size:var(--font-sm)" id="milestoneText">Loading...</strong><p style="font-size:var(--font-xs);color:var(--text-muted)" id="milestoneSubtext"></p></div></div></div>
+                <div class="card" id="sdetCommitCard">
+                    <h3 class="section-title" style="font-size:var(--font-md)">⏰ SDET Commitment</h3>
+                    <div class="commit-form"><input type="text" id="sdetCommitTime" placeholder="e.g., 7:00 PM" maxlength="20"><input type="text" id="sdetCommitLocation" placeholder="e.g., At desk" maxlength="40"><button class="btn btn--primary" id="sdetSaveCommit">Save</button></div>
+                    <p style="font-size:var(--font-xs);color:var(--text-muted);margin-top:6px" id="sdetCommitDisplay"></p>
+                    <div class="reward-box"><strong>🎁 Rewards:</strong><br>30 days: <span id="sdetReward30">(not set)</span><br>60 days: <span id="sdetReward60">(not set)</span></div>
+                    <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><input type="text" id="sdetReward30Input" placeholder="30-day reward" style="flex:1;min-width:100px;padding:6px 10px;border-radius:999px;border:1px solid #E0DCF0;font-size:var(--font-xs);font-family:inherit"><input type="text" id="sdetReward60Input" placeholder="60-day reward" style="flex:1;min-width:100px;padding:6px 10px;border-radius:999px;border:1px solid #E0DCF0;font-size:var(--font-xs);font-family:inherit"><button class="btn btn--ghost btn--sm" id="sdetSaveRewards">Set</button></div>
+                    <button class="btn btn--primary countdown-btn" style="margin-top:10px;width:100%" id="sdetCountdown"><span class="countdown-btn__ring"></span><span id="sdetCountdownLabel">🚀 Start SDET Study</span></button>
+                </div>
+            </div>
+            <div class="card" style="margin-top:clamp(12px,2.5vw,20px)"><button class="collapsible-toggle" id="sdetMistakesToggle"><span class="collapsible-arrow">▸</span> ⚠️ SDET Mistakes & Review</button><div class="collapsible-content"><div style="padding-top:12px" id="sdetMistakesBody"><p>Select a week.</p></div></div></div>
+        </div>
+
+        <!-- ENGLISH PLAN PANEL -->
+        <div class="plan-panel" id="englishPanel">
+            <div class="grid grid--2col">
+                <div class="card" id="engWeekCard" style="grid-row:span 2">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+                        <div><h2 class="section-title" id="engWeekTitle">Loading...</h2><p class="section-subtitle" id="engWeekGoal"></p></div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="status-label status-label--not-started" id="engWeekStatus">Not started</span><span class="stage-indicator stage-indicator--1" id="engStageIndicator">Foundation</span></div>
+                    </div>
+                    <div class="week-tabs" id="engWeekTabs"></div>
+                    <div class="progress-wrap"><div class="progress-label"><span>Weekly progress</span><span id="engWeekProgressText">0/5</span></div><div class="progress-bar"><div class="progress-fill" id="engWeekProgressBar" style="width:0%"></div></div></div>
+                    <ul class="task-list" id="engTaskList"></ul>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+                        <button class="btn btn--ghost btn--sm" id="engResetToday">↺ Reset Today</button>
+                        <button class="btn btn--ghost btn--sm" id="engResetWeek">↺ Reset Week</button>
+                        <button class="btn btn--ghost btn--sm" id="engResetAll">↺ Reset All</button>
+                    </div>
+                    <div class="never-miss-note" style="margin-top:10px">⚡ <strong>Never miss two days in a row.</strong> Minimum: 5 sentences.</div>
+                </div>
+                <div class="card" id="engCalendarCard"><h3 class="section-title" style="font-size:var(--font-md)">📅 Study Calendar</h3><div class="calendar-grid" id="engCalendarGrid"></div><div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div class="ring-wrap"><svg class="ring-svg" viewBox="0 0 52 52"><circle class="ring-bg" cx="26" cy="26" r="22"/><circle class="ring-fill" id="engRingCircle" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="138.23"/></svg><span class="ring-text" id="engRingLabel">0%</span></div><div><strong style="font-size:var(--font-sm)" id="engMilestoneText">Loading...</strong><p style="font-size:var(--font-xs);color:var(--text-muted)" id="engMilestoneSubtext"></p></div></div></div>
+                <div class="card" id="engCommitCard">
+                    <h3 class="section-title" style="font-size:var(--font-md)">⏰ English Promise</h3>
+                    <p style="font-size:var(--font-xs);color:var(--text-muted);margin-bottom:6px">Be specific — this triples success.</p>
+                    <div class="commit-form"><input type="text" id="engCommitTime" placeholder="e.g., 9:30 PM" maxlength="20"><input type="text" id="engCommitLocation" placeholder="e.g., At desk" maxlength="40"><button class="btn btn--primary" id="engSaveCommit">Save</button></div>
+                    <p style="font-size:var(--font-xs);color:var(--text-muted);margin-top:6px" id="engCommitDisplay"></p>
+                    <div class="reward-box"><strong>🎁 Rewards:</strong><br>30 days: <span id="engReward30">(not set)</span><br>60 days: <span id="engReward60">(not set)</span></div>
+                    <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><input type="text" id="engReward30Input" placeholder="30-day reward" style="flex:1;min-width:100px;padding:6px 10px;border-radius:999px;border:1px solid #E0DCF0;font-size:var(--font-xs);font-family:inherit"><input type="text" id="engReward60Input" placeholder="60-day reward" style="flex:1;min-width:100px;padding:6px 10px;border-radius:999px;border:1px solid #E0DCF0;font-size:var(--font-xs);font-family:inherit"><button class="btn btn--ghost btn--sm" id="engSaveRewards">Set</button></div>
+                    <button class="btn btn--primary countdown-btn" style="margin-top:10px;width:100%" id="engCountdown"><span class="countdown-btn__ring"></span><span id="engCountdownLabel">🚀 Start English Study</span></button>
+                    <div style="margin-top:10px"><button class="btn btn--copy btn--sm" id="engCopyPrompt">📋 Copy AI Prompt</button></div>
+                    <div class="prompt-box">I am a B1 English learner. Correct my grammar errors only. Focus on: verb form, verb tense (especially past perfect misuse), and clause structure. Explain each correction briefly. Do not change my vocabulary or ideas.</div>
+                </div>
+            </div>
+            <div class="card" style="margin-top:clamp(12px,2.5vw,20px)"><button class="collapsible-toggle" id="engMistakesToggle"><span class="collapsible-arrow">▸</span> ⚠️ English Mistakes & Weekly Review</button><div class="collapsible-content"><div style="padding-top:12px" id="engMistakesBody"><p>Select a week.</p></div></div></div>
+        </div>
+
+        <div class="server-note" style="text-align:center">💡 <strong>Google login:</strong> Serve via <code>python -m http.server 8080</code> → <code>http://localhost:8080/</code></div>
+        <div id="firestoreHintArea"></div>
+    </div>
+
+    <script>
+    (function(){
+        const firebaseConfig={apiKey:"AIzaSyDp1Dl78ovJ7X8lKOCe9WYIvsPrnT2oyxc",authDomain:"sdet-tracker.firebaseapp.com",projectId:"sdet-tracker",storageBucket:"sdet-tracker.firebasestorage.app",messagingSenderId:"491562975282",appId:"1:491562975282:web:260e9e7008b4e9acc53c2b",measurementId:"G-0YJT8P87JC"};
+        firebase.initializeApp(firebaseConfig);
+        const auth=firebase.auth(),db=firebase.firestore(),googleProvider=new firebase.auth.GoogleAuthProvider();
+        let currentUser=null,syncTimer=null,activePlan='sdet';
+
+        // ─── COMPLETE SDET WEEKS (20 weeks) ─────────────────────
+        const sdetWeeks=[{id:1,title:'Week 1 — Java OOP: Classes, Inheritance, Interfaces',goal:'Write OOP code from scratch without notes.',stage:1,isBuffer:false,tasks:[{id:'s1t1',text:'Install IntelliJ IDEA + JDK 17',how:'Download from official sites. Create Maven project. Hello World runs.',isPriority:true},{id:'s1t2',text:'Write Animal parent class + Dog and Cat children',how:'Parent has eat(). Each child has sound(). Demonstrate polymorphism.',isPriority:true},{id:'s1t3',text:'Write Shape interface + Circle and Rectangle',how:'Interface has area(). Both return correct values.',isPriority:false},{id:'s1t4',text:'Create GitHub repo java-practice. First push.',how:'git init→add→commit→push. Repo visible with real commit message.',isPriority:true},{id:'s1t5',text:'Obsidian: Explain OOP, inheritance, interface in your own words.',how:'No copy-paste. Say each explanation out loud without reading.',isPriority:true}],mistakes:['Forgot @Override: code runs but logic is wrong. Always add it.','Git push rejected: run git pull --rebase first.']},{id:2,title:'Week 2 — Collections + Exception Handling',goal:'Use List, Map, Set without notes. Write try-catch for real failures.',stage:1,isBuffer:false,tasks:[{id:'s2t1',text:'Write 10 ArrayList operations from scratch',how:'add,remove,sort,search,size,contains,iterate,clear,get,subList.',isPriority:true},{id:'s2t2',text:'Write HashMap: city→population. Print all entries.',how:'Use entrySet(). Explain keySet() vs entrySet().',isPriority:true},{id:'s2t3',text:'Write divide(a,b) that throws DivisionByZeroException',how:'Custom exception. Try-catch. Handle zero,negative,normal.',isPriority:true},{id:'s2t4',text:'Build Student Grade Manager (CLI)',how:'HashMap<String,Integer>. Add,query,delete. Handle bad input. Push on branch.',isPriority:true},{id:'s2t5',text:'Obsidian: When to use List vs Map vs Set?',how:'One example per type. Answer in 45 seconds.',isPriority:false}],mistakes:['NullPointerException: use getOrDefault() or containsKey() first.','ConcurrentModificationException: never remove in for-each. Use Iterator.remove().']},{id:3,title:'Week 3 — Testing Thinking + Basic Test Design',goal:'Write tests covering normal, edge, and negative cases.',stage:1,isBuffer:false,tasks:[{id:'s3t1',text:'Write test cases on paper for divide(a,b) — no code',how:'List normal,zero,negative,null,large numbers. 8+ cases.',isPriority:true},{id:'s3t2',text:'Write test cases for login form: valid, wrong, empty, SQL injection, 300-char',how:'Paper first. Then JUnit. 6+ scenarios.',isPriority:true},{id:'s3t3',text:'Write JUnit 5 tests for Student Grade Manager',how:'@Test,@ParameterizedTest,assertThrows. All green.',isPriority:true},{id:'s3t4',text:'Break your own code on purpose. Fix it.',how:'Comment out validation. Watch test fail. Understand error messages.',isPriority:false},{id:'s3t5',text:'Obsidian: Difference between normal, edge, negative cases?',how:'One example each. Answer without notes.',isPriority:true}],mistakes:['Only writing success tests: most expensive mistake in real testing.','Not reading assertion error: it tells you exactly what went wrong.']},{id:4,title:'Week 4 — BUFFER WEEK',goal:'Catch up, review, or rest. No new topics.',stage:1,isBuffer:true,tasks:[{id:'s4t1',text:'Catch up on Week 1–3 incomplete tasks',how:''},{id:'s4t2',text:'Re-do any task from scratch without notes',how:''},{id:'s4t3',text:'Write Obsidian review notes for everything',how:''},{id:'s4t4',text:'Rest completely',how:'Rest is not failure.'},{id:'s4t5',text:'Debug any broken code',how:''}],mistakes:['Do not start Week 5 before using this buffer.']},{id:5,title:'Week 5 — Maven + Git Workflow',goal:'Build Maven projects. Use Git branches professionally.',stage:1,isBuffer:false,tasks:[{id:'s5t1',text:'Draw Maven folder structure from memory. Verify.',how:'src/main/java,src/test/java,target/,pom.xml.',isPriority:true},{id:'s5t2',text:'Add JUnit 5 to pom.xml. Run mvn test from terminal.',how:'Terminal, not IDE. mvn test passes.',isPriority:true},{id:'s5t3',text:'Create branch, add feature, merge to main. Do 3 times.',how:'Terminal only. 3 clean PRs on GitHub.',isPriority:true},{id:'s5t4',text:'Create merge conflict on purpose. Resolve manually.',how:'Edit same line on two branches. Fix <<<<<< markers.',isPriority:true},{id:'s5t5',text:'Write professional README.md for java-practice.',how:'Description,how to run,tech stack. A stranger can run it.',isPriority:false}],mistakes:['Using IntelliJ GUI for Git: learn terminal. Works everywhere.','pom.xml XML error: usually missing closing tag.']},{id:6,title:'Week 6 — JUnit 5 Deep Dive + Stage 1 Project',goal:'Write professional unit tests. Publish portfolio project.',stage:1,isBuffer:false,tasks:[{id:'s6t1',text:'@ParameterizedTest with @CsvSource, 6 data rows',how:'One test runs all 6 rows.',isPriority:true},{id:'s6t2',text:'Use assertThrows for all custom exceptions',how:'Explain what assertThrows returns.',isPriority:true},{id:'s6t3',text:'Build Library Management System (Stage 1 Project)',how:'OOP+Collections+Exceptions+JUnit5. TDD approach.',isPriority:true},{id:'s6t4',text:'Write README with class diagram, how to run, screenshot',how:'Stranger runs it in 5 min.',isPriority:true},{id:'s6t5',text:'Push with clean commit history. 8+ meaningful commits.',how:'feat:,test:,fix:,docs: prefixes.',isPriority:false}],mistakes:['Tests without assertions are not tests.','Skipping edge cases in TDD: test before code.']},{id:7,title:'Week 7 — API Basics + Postman',goal:'Understand HTTP/REST. Test APIs with Postman.',stage:2,isBuffer:false,tasks:[{id:'s7t1',text:'Obsidian: Each HTTP method? One real example each.',how:'Answer PUT vs PATCH in 30 seconds.',isPriority:true},{id:'s7t2',text:'Test JSONPlaceholder: GET,POST,PUT,DELETE on /posts',how:'All 4 work. Understand request structure.',isPriority:true},{id:'s7t3',text:'Write Postman test scripts: status, field, response time',how:'pm.test() and pm.expect().',isPriority:true},{id:'s7t4',text:'Create Postman Environment with {{base_url}}',how:'Changing env changes all URLs.',isPriority:false},{id:'s7t5',text:'Obsidian: 401vs403? 400vs422? 200vs201?',how:'One real scenario each.',isPriority:true}],mistakes:['401=not authenticated. 403=authenticated but not allowed.','POST 400: check Content-Type:application/json header.']},{id:8,title:'Week 8 — Selenium WebDriver Foundations',goal:'Stable Selenium tests. No Thread.sleep.',stage:2,isBuffer:false,tasks:[{id:'s8t1',text:'Add selenium-java 4.x + WebDriverManager. Open/close browser.',how:'5 lines. No manual driver.',isPriority:true},{id:'s8t2',text:'Search "SDET interview" on Google, assert title',how:'Write yourself. No copy-paste.',isPriority:true},{id:'s8t3',text:'Write 10 locators: ID,name,CSS,XPath variants',how:'DevTools→Elements. Explain why each works.',isPriority:true},{id:'s8t4',text:'Replace all Thread.sleep with WebDriverWait',how:'Zero Thread.sleep in your code.',isPriority:true},{id:'s8t5',text:'Obsidian: Implicit vs explicit vs Fluent wait',how:'Code example for each.',isPriority:false}],mistakes:['NoSuchElementException: add explicit wait.','StaleElementReferenceException: re-find element inside action.']},{id:9,title:'Week 9 — BUFFER WEEK',goal:'Catch up Week 7–8. Review locators and waits.',stage:2,isBuffer:true,tasks:[{id:'s9t1',text:'Catch up on Week 7–8',how:''},{id:'s9t2',text:'Review locator strategies: 20 XPaths/CSS',how:''},{id:'s9t3',text:'Revisit WebDriverWait until automatic',how:''},{id:'s9t4',text:'Review Postman notes and HTTP status codes',how:''},{id:'s9t5',text:'Rest if needed',how:''}],mistakes:['Self-check: WebDriverWait without docs? 5 ExpectedConditions? 400 vs 401 vs 403?']},{id:10,title:'Week 10 — Page Object Model (POM)',goal:'Refactor into POM. Zero findElement() in test class.',stage:2,isBuffer:false,tasks:[{id:'s10t1',text:'Draw POM architecture: BasePage→LoginPage→HomePage',how:'Explain each layer in 30 seconds.',isPriority:true},{id:'s10t2',text:'Refactor Week 8 code into POM. Create pages/ package.',how:'No findElement() in test class.',isPriority:true},{id:'s10t3',text:'Build GoogleSearchPage: searchFor(),getFirstResultTitle()',how:'Test class has zero locators.',isPriority:true},{id:'s10t4',text:'Build BasePage with WebDriverWait. All pages extend it.',how:'Shared wait logic.',isPriority:false},{id:'s10t5',text:'Obsidian: Why POM? What breaks after 3 months without it?',how:'4 specific problems.',isPriority:true}],mistakes:['driver.findElement() in test class=wrong.','PageFactory.initElements() missing: everything is null.']},{id:11,title:'Week 11 — Selenium Advanced + TestNG + Reports',goal:'Complex UI elements. TestNG. HTML reports.',stage:2,isBuffer:false,tasks:[{id:'s11t1',text:'Handle dropdown(Select), alert, iframe',how:'Use the-internet.herokuapp.com.',isPriority:true},{id:'s11t2',text:'Screenshot on failure in @AfterMethod',how:'TakesScreenshot. Timestamp filename.',isPriority:true},{id:'s11t3',text:'Add TestNG. testng.xml with smoke/regression groups',how:'Each group runs independently.',isPriority:true},{id:'s11t4',text:'Add ExtentReports. Attach screenshots on failure.',how:'ITestListener.onTestFailure.',isPriority:true},{id:'s11t5',text:'Push to GitHub. Report screenshot in README.',how:''}],mistakes:['Parallel tests sharing WebDriver: use ThreadLocal.','ExtentReports empty: forgot extent.flush() in @AfterSuite.']},{id:12,title:'Week 12 — RestAssured + API Automation',goal:'Write API tests with RestAssured.',stage:2,isBuffer:false,tasks:[{id:'s12t1',text:'GET request to JSONPlaceholder with RestAssured',how:'Assert 200. Log response.',isPriority:true},{id:'s12t2',text:'POST,PUT,PATCH,DELETE with RestAssured',how:'.body() for POST/PUT. Assert 201,200.',isPriority:true},{id:'s12t3',text:'Validate JSON: JsonPath, Hamcrest matchers',how:'Assert fields, nested objects, array sizes.',isPriority:true},{id:'s12t4',text:'Create BaseTest with shared baseURI and request spec',how:'No repeated setup.',isPriority:false},{id:'s12t5',text:'Obsidian: API testing vs UI testing? 5 differences.',how:'Answer with examples.',isPriority:true}],mistakes:['Forgetting .contentType("application/json") on POST.','Not validating response time: use .time() matcher.']},{id:13,title:'Week 13 — API Framework + Stage 2 Project',goal:'Complete API framework. Publish Stage 2.',stage:2,isBuffer:false,tasks:[{id:'s13t1',text:'Build reusable API test framework',how:'Config,base classes,utilities.',isPriority:true},{id:'s13t2',text:'Full test suite for public API',how:'CRUD+negative+edge cases.',isPriority:true},{id:'s13t3',text:'Add reports (Extent/Allure) for API tests',how:'Request/response in reports.',isPriority:true},{id:'s13t4',text:'Professional README. Push with clean history.',how:'Description,tech stack,how to run,screenshot.',isPriority:true},{id:'s13t5',text:'Update portfolio: UI+API projects on GitHub',how:'Both have READMEs. Both run with one command.',isPriority:false}],mistakes:['Skipping negative API tests: test 400,401,404 too.','Hardcoding API keys: use config/env variables.']},{id:14,title:'Week 14 — BUFFER WEEK',goal:'Catch up Weeks 10–13. Polish Stage 2.',stage:2,isBuffer:true,tasks:[{id:'s14t1',text:'Catch up Week 10–13',how:''},{id:'s14t2',text:'Polish UI+API projects on GitHub',how:''},{id:'s14t3',text:'Review POM and RestAssured patterns',how:''},{id:'s14t4',text:'Obsidian summary of Stage 2',how:''},{id:'s14t5',text:'Rest before Stage 3',how:''}],mistakes:['Don\'t rush into Stage 3 with unfinished projects.']},{id:15,title:'Week 15 — BDD + Cucumber',goal:'Understand BDD. Feature files + step definitions.',stage:3,isBuffer:false,tasks:[{id:'s15t1',text:'Obsidian: What is BDD? BDD vs TDD?',how:'Gherkin: Given-When-Then. Real example.',isPriority:true},{id:'s15t2',text:'Add Cucumber. Write .feature for login scenario.',how:'Valid login, invalid login. Cucumber runner.',isPriority:true},{id:'s15t3',text:'Implement step definitions. Link to Selenium POM.',how:'Step defs call POM. No driver in step defs.',isPriority:true},{id:'s15t4',text:'Generate Cucumber HTML report.',how:'Feature-level results.',isPriority:false},{id:'s15t5',text:'Obsidian: 3 pros and 3 cons of BDD for SDET.',how:'Be honest.',isPriority:true}],mistakes:['Overcomplicating feature files: keep them readable.','Selenium code directly in step defs: delegate to POM.']},{id:16,title:'Week 16 — CI/CD + GitHub Actions',goal:'Configure CI/CD. Tests run on push.',stage:3,isBuffer:false,tasks:[{id:'s16t1',text:'Obsidian: What is CI/CD? Why for SDET?',how:'Explain CI,CD. Real workflow.',isPriority:true},{id:'s16t2',text:'Create .github/workflows/maven.yml for UI project',how:'Trigger on push. mvn test. Upload artifacts.',isPriority:true},{id:'s16t3',text:'Headless browser config for CI',how:'ChromeOptions:--headless,--no-sandbox.',isPriority:true},{id:'s16t4',text:'Second workflow for API project',how:'Both have CI badges.',isPriority:false},{id:'s16t5',text:'Obsidian: CI fails? Walk through debugging process.',how:'Check logs→reproduce locally→fix→push.',isPriority:true}],mistakes:['Not testing CI locally: use act or verify YAML.','Forgetting to upload artifacts: need report to debug.']},{id:17,title:'Week 17 — Capstone Project Build (Part 1)',goal:'Design and start capstone project.',stage:3,isBuffer:false,tasks:[{id:'s17t1',text:'Design capstone: choose real website/API to test',how:'Not a tutorial site. Document test plan.',isPriority:true},{id:'s17t2',text:'Set up Maven project structure',how:'POM for UI, RestAssured for API.',isPriority:true},{id:'s17t3',text:'Write first 5 UI test cases with POM',how:'Login,search,navigation. All pass.',isPriority:true},{id:'s17t4',text:'Write first 5 API test cases with RestAssured',how:'GET,POST,negative. All pass.',isPriority:true},{id:'s17t5',text:'Push initial commit. Test plan in README.',how:'README explains what+why.',isPriority:false}],mistakes:['Starting without test plan: waste time. Plan first.','Choosing unstable site: pick something stable.']},{id:18,title:'Week 18 — Capstone Project Build (Part 2)',goal:'Complete capstone. Add reports, CI, polish.',stage:3,isBuffer:false,tasks:[{id:'s18t1',text:'Add 10+ more test cases (UI+API)',how:'Edge cases,negative,boundary.',isPriority:true},{id:'s18t2',text:'Integrate ExtentReports/Allure',how:'Screenshots on failure.',isPriority:true},{id:'s18t3',text:'Add GitHub Actions CI. Verify tests in CI.',how:'CI badge in README.',isPriority:true},{id:'s18t4',text:'Stellar README: overview,tech,how to run,screenshots,CI',how:'Recruiter understands in 2 min.',isPriority:true},{id:'s18t5',text:'Record 2-min demo video (optional)',how:'Screen recording of tests+report.',isPriority:false}],mistakes:['README with no screenshots. Show the report.','Skipping CI: employers want to see pipeline integration.']},{id:19,title:'Week 19 — BUFFER WEEK',goal:'Polish everything. Prepare for interview sprint.',stage:3,isBuffer:true,tasks:[{id:'s19t1',text:'Final review of all 3 GitHub projects',how:''},{id:'s19t2',text:'Practice explaining projects out loud (2 min each)',how:''},{id:'s19t3',text:'Update resume with project links',how:''},{id:'s19t4',text:'At least one mock interview',how:''},{id:'s19t5',text:'Rest and prepare mentally',how:''}],mistakes:['Waiting to practice English explanations: start now.']},{id:20,title:'Week 20 — Interview Sprint + Final Applications',goal:'Apply. Mock interviews. Land the offer.',stage:3,isBuffer:false,tasks:[{id:'s20t1',text:'Apply to 10+ SDET/QA Automation positions',how:'Tailor resume. Include GitHub.',isPriority:true},{id:'s20t2',text:'Practice top 20 SDET interview questions out loud',how:'Java,Selenium,POM,RestAssured,CI/CD.',isPriority:true},{id:'s20t3',text:'At least 2 mock interviews',how:'Record. Review. Improve.',isPriority:true},{id:'s20t4',text:'Review all Obsidian notes. Fill gaps.',how:'Can\'t explain in 60s? Review it.',isPriority:true},{id:'s20t5',text:'Send follow-ups. Track applications.',how:'Company,role,date,status,next step.',isPriority:false}],mistakes:['Applying without practicing explanations: you\'ll fail screens.','Resume with skills but no project links.']}];
+
+        // ─── COMPLETE ENGLISH WEEKS (20 weeks) ─────────────────
+        const engWeeks=[{id:1,title:'Week 1 — Grammar: Simple Past & Past Perfect',goal:'Read grammar units. Write your own example sentences.',stage:1,isBuffer:false,tasks:[{id:'e1t1',text:'Read Unit 5–6: Simple Past',how:'Write 2–3 sentences about yesterday.',isPriority:true},{id:'e1t2',text:'Read Unit 15–16: Past Perfect — the real rule',how:'Write 2 sentences with and without it.',isPriority:true},{id:'e1t3',text:'Write 4 sentences comparing Simple Past vs Past Perfect',how:'"I ate. Then I went." vs "I had already eaten when..."',isPriority:false},{id:'e1t4',text:'Set up Obsidian daily log template',how:'Copy template. Folder: English/Logs/.',isPriority:false},{id:'e1t5',text:'Fill in promise: time, place, both rewards',how:'Be specific. Triples success rate.',isPriority:true}],mistakes:['Using past perfect when simple past is enough.','Reading grammar without writing own sentences.']},{id:2,title:'Week 2 — Verb Forms & Relative Clauses',goal:'Master verb patterns and relative clauses.',stage:1,isBuffer:false,tasks:[{id:'e2t1',text:'Read Unit 25–27: Verb forms "help me do","make it look"',how:'Write 3 sentences about daily life.',isPriority:true},{id:'e2t2',text:'Read Unit 75–76: Relative Clauses which/that/who',how:'Write 3 sentences about people you know.',isPriority:true},{id:'e2t3',text:'Read Unit 77–78: Relative Clauses continued',how:'Write 3 sentences about things you own.',isPriority:false},{id:'e2t4',text:'Review Week 1: write 3 sentences from memory',how:'No book. Check after.',isPriority:true},{id:'e2t5',text:'Find 5 VOA Level 2 stories for next week',how:'Save them. Get AI Chinese translations.',isPriority:true}],mistakes:['Forgetting verb after relative pronoun:"who lives"(not"who live").','Confusing which(things) and who(people).']},{id:3,title:'Week 3 — Start Translation Practice',goal:'Begin daily translation loop. Core of the plan.',stage:1,isBuffer:false,tasks:[{id:'e3t1',text:'Mon: Translation (25 min) — review mistakes + translate',how:'Review 2–3 mistakes. Translate VOA story. No looking at English.',isPriority:true},{id:'e3t2',text:'Tue: Translation — self-check first, then AI',how:'Check verb forms yourself first. Then ChatGPT with prompt.',isPriority:true},{id:'e3t3',text:'Wed: Grammar Focus — find most common mistake',how:'Read that unit. Write 8 sentences. AI correction.',isPriority:true},{id:'e3t4',text:'Thu & Fri: Translation Practice (25 min each)',how:'Review→translate→self-check→AI→record.',isPriority:false},{id:'e3t5',text:'Sun: Review + prepare 5 VOA stories for next week',how:'Level 2 or 3. Get AI translations. Save as Mon–Fri.',isPriority:true}],mistakes:['Looking at English original while translating.','Skipping self-check before AI.','Not recording mistakes in Obsidian.']},{id:4,title:'Week 4 — Translation + Add VOA Reading',goal:'Continue translation. Add 10 min reading/day.',stage:1,isBuffer:false,tasks:[{id:'e4t1',text:'Mon–Fri translation practice (25 min each)',how:'Same loop: review→translate→self-check→AI→record.',isPriority:true},{id:'e4t2',text:'After translation: read one VOA article (10 min)',how:'Do not translate. 80% understanding is enough.',isPriority:true},{id:'e4t3',text:'Wed Grammar Focus: has your common mistake changed?',how:'Compare with Week 3. Fewer verb form errors?',isPriority:false},{id:'e4t4',text:'Sat Writing: 150-word essay with clauses',how:'Required: 1 relative + 1 adverbial clause.',isPriority:true},{id:'e4t5',text:'Sun: Review + identity statement',how:'Write:"I am a person who practices English every day."',isPriority:true}],mistakes:['Trying to understand every word when reading. 80% is enough.','Skipping identity statement on Sunday.']},{id:5,title:'Week 5 — Error Detection + Grammar Focus',goal:'Catch your own errors before AI tells you.',stage:1,isBuffer:false,tasks:[{id:'e5t1',text:'Translation: find 2+ errors yourself before AI',how:'Circle them in your text first.',isPriority:true},{id:'e5t2',text:'Keep Obsidian error table updated daily',how:'What I Wrote|Correct|Mistake Type. Mark repeats "again".',isPriority:true},{id:'e5t3',text:'Wed: drill most common mistake this week',how:'Read unit. Write 8 sentences. AI check.',isPriority:false},{id:'e5t4',text:'Sat Writing: 150 words + self-check clauses',how:'1 relative + 1 adverbial. No past perfect unless sure.',isPriority:true},{id:'e5t5',text:'Sun: count errors you found yourself vs AI found',how:'Compare with Week 4. Real progress.',isPriority:true}],mistakes:['Rushing through self-check. Finding errors > speed.','Not marking repeated mistakes "again".']},{id:6,title:'Week 6 — Error Reduction + Month 1 Self-Test',goal:'Reduce verb form errors. Monthly self-test.',stage:1,isBuffer:false,tasks:[{id:'e6t1',text:'Translation: find 3+ errors yourself before AI',how:'Check: verb form, tense, clause structure.',isPriority:true},{id:'e6t2',text:'Month 1 Self-Test: 150 words, find your own errors',how:'No AI. Compare with start of month.',isPriority:true},{id:'e6t3',text:'Review all Obsidian records from Month 1',how:'Most common mistake? Any disappeared?',isPriority:false},{id:'e6t4',text:'Sat Writing: compare essay quality with Week 3',how:'More varied sentences? Fewer errors?',isPriority:true},{id:'e6t5',text:'Sun: Prepare for Stage 2',how:'Is daily routine stable? Stage 2 adds listening.',isPriority:true}],mistakes:['Skipping monthly self-test. Only objective measure.','Comparing to native speakers. Compare to Week 1.']},{id:7,title:'Week 7 — Translation + Writing Focus',goal:'Keep translation. Increase writing quality.',stage:2,isBuffer:false,tasks:[{id:'e7t1',text:'Translation Mon–Fri: continue the loop',how:'This is automatic now.',isPriority:true},{id:'e7t2',text:'Focus on clause structure this week',how:'Check: are relative clauses complete?',isPriority:true},{id:'e7t3',text:'Wed: relative + adverbial clauses',how:'Re-read Units 75–78. Write 8 sentences.',isPriority:false},{id:'e7t4',text:'Sat Writing: 150–200 words, 2 relative + 2 adverbial',how:'Self-check before AI.',isPriority:true},{id:'e7t5',text:'Sun: Review + identity statement',how:'"I am a person who practices English every day."',isPriority:true}],mistakes:['Incomplete clauses:"The book that I read" needs verb.','Adverbial needs subject+verb:"Because I was tired".']},{id:8,title:'Week 8 — Add CNN 10 Listening',goal:'Add 10 min listening/day.',stage:2,isBuffer:false,tasks:[{id:'e8t1',text:'Translation Mon–Fri (25 min)',how:'Keep the rhythm.',isPriority:true},{id:'e8t2',text:'After translation: CNN 10 (10 min)',how:'Listen→transcript→listen again. Main idea only.',isPriority:true},{id:'e8t3',text:'Wed: does listening help your writing?',how:'Notice new phrases appearing?',isPriority:false},{id:'e8t4',text:'Sat Writing: use one phrase from CNN 10',how:'Connects listening to writing.',isPriority:true},{id:'e8t5',text:'Sun: Review + check streak',how:'50+ days? Plan your reward.',isPriority:true}],mistakes:['Trying to understand every word in CNN 10.','Stopping translation to make time for listening.']},{id:9,title:'Week 9 — BUFFER: Review & Catch Up',goal:'No new topics. Catch up or rest.',stage:2,isBuffer:true,tasks:[{id:'e9t1',text:'Catch up on Week 7–8',how:''},{id:'e9t2',text:'Re-read uncertain grammar units',how:'Units 15–16,75–78 especially.'},{id:'e9t3',text:'Review all Obsidian error records',how:'Which mistakes disappeared?'},{id:'e9t4',text:'Write reflection:"How has my English changed?"',how:'Compare now with Week 1.'},{id:'e9t5',text:'Rest if needed',how:'Buffer weeks are strategic.'}],mistakes:['Feeling guilty about buffer week. It\'s in the plan.']},{id:10,title:'Week 10 — Translation + Listening Practice',goal:'Stabilize full routine.',stage:2,isBuffer:false,tasks:[{id:'e10t1',text:'Translation Mon–Fri (25 min)',how:'Your daily anchor.',isPriority:true},{id:'e10t2',text:'After translation: read VOA (10 min)',how:'Try Level 3. If hard, stay Level 2.',isPriority:false},{id:'e10t3',text:'CNN 10 after reading (10 min)',how:'Full: 25+10+10=45 min total.',isPriority:true},{id:'e10t4',text:'Wed: patterns across 3 weeks of errors',how:'Which mistake never goes away?',isPriority:false},{id:'e10t5',text:'Sat Writing + Sun Review',how:'Writing day is non-negotiable.',isPriority:true}],mistakes:['Skipping listening because it feels hard.','Not increasing reading difficulty over time.']},{id:11,title:'Week 11 — Natural Writing Focus',goal:'Sentences should feel natural.',stage:2,isBuffer:false,tasks:[{id:'e11t1',text:'Translation: self-check 4 things',how:'Verb form, tense, clause, AND natural order.',isPriority:true},{id:'e11t2',text:'Compare translations with VOA original carefully',how:'What did the native writer do differently?',isPriority:true},{id:'e11t3',text:'Wed: word order and natural phrasing',how:'Chinese vs English order. Write 8 sentences.',isPriority:false},{id:'e11t4',text:'Sat Writing: 200 words, read out loud',how:'Does it sound natural? Adjust.',isPriority:true},{id:'e11t5',text:'Sun: close to 30-day reward?',how:'Claim it. You earned it.',isPriority:true}],mistakes:['Chinese-style English:"I with friend went to store."','Forgetting articles a/an/the.']},{id:12,title:'Week 12 — Grammar Refinement',goal:'Clean up remaining grammar weak points.',stage:2,isBuffer:false,tasks:[{id:'e12t1',text:'Translation: focus on most common mistake',how:'Check that one thing first every time.',isPriority:true},{id:'e12t2',text:'Re-read unit for stubborn mistake',how:'Write 10 sentences. If still wrong, read again.',isPriority:true},{id:'e12t3',text:'Wed: articles (a/an/the) and prepositions',how:'Write 8 sentences about your room.',isPriority:false},{id:'e12t4',text:'Sat Writing: 200 words, find 80% errors yourself',how:'If you can, you\'re close to B2.',isPriority:true},{id:'e12t5',text:'Sun: prepare for Month 2 self-test',how:'150 words. No AI. Count errors.',isPriority:true}],mistakes:['Ignoring articles. Many small errors = unnatural.','Not doing Month 2 test honestly.']},{id:13,title:'Week 13 — Month 2 Self-Test + Review',goal:'Take Month 2 self-test. Evaluate progress.',stage:2,isBuffer:true,tasks:[{id:'e13t1',text:'Month 2 Self-Test: 150 words, no AI',how:'Compare with Month 1. More errors found? More varied?',isPriority:true},{id:'e13t2',text:'Review all Month 2 Obsidian records',how:'Count mistake types. Which are gone?',isPriority:false},{id:'e13t3',text:'Catch up Weeks 10–12',how:''},{id:'e13t4',text:'Reflection:"What improved? What needs work?"',how:'Be specific.',isPriority:true},{id:'e13t5',text:'Prepare for Stage 3 final push',how:'Make sure routine is solid.',isPriority:true}],mistakes:['Being too hard on yourself. 2 months=real progress.']},{id:14,title:'Week 14 — Advanced Translation',goal:'Level 3–4 VOA stories.',stage:3,isBuffer:false,tasks:[{id:'e14t1',text:'Translation: switch to Level 3 VOA',how:'If comfortable, try Level 4.',isPriority:true},{id:'e14t2',text:'New self-check:"Does this sound natural?"',how:'Read out loud. Rephrase if not.',isPriority:true},{id:'e14t3',text:'Wed: advanced clause structures',how:'"Not only...but also","Despite the fact that..."',isPriority:false},{id:'e14t4',text:'Sat Writing: 200+ words, cause/effect topic',how:'Use because,therefore,as a result.',isPriority:true},{id:'e14t5',text:'Sun: check 60-day reward progress',how:'Plan how to claim it.',isPriority:true}],mistakes:['Staying at Level 2 too long. Challenge needed.','Complex sentences that lose meaning. Clear>complex.']},{id:15,title:'Week 15 — Self-Correction Mastery',goal:'Catch errors before AI does.',stage:3,isBuffer:false,tasks:[{id:'e15t1',text:'Translation: find 90% of errors yourself',how:'Check all five: verb,tense,clause,naturalness,articles.',isPriority:true},{id:'e15t2',text:'Track: errors you found vs AI found',how:'80%+ = B2 self-editing skill.',isPriority:true},{id:'e15t3',text:'Wed: drill hardest remaining weak point',how:'25 min focused.',isPriority:false},{id:'e15t4',text:'Sat Writing: 200 words, self-edit 10 min',how:'Every sentence: correct? natural? Fix what you can.',isPriority:true},{id:'e15t5',text:'Sun: try reading an NPR article',how:'B2 level. 80% understanding=success.',isPriority:true}],mistakes:['Relying too much on AI. Trust your own judgment.','Not pushing reading difficulty up.']},{id:16,title:'Week 16 — Integrated Practice',goal:'All skills together.',stage:3,isBuffer:false,tasks:[{id:'e16t1',text:'Full routine: translation(25)+reading(10)+listening(10)',how:'45 min. Complete English workout.',isPriority:true},{id:'e16t2',text:'Does listening help writing sound natural?',how:'Use CNN 10 phrases in translations.',isPriority:false},{id:'e16t3',text:'Wed: polish, don\'t learn new rules',how:'Focus on consistent application.',isPriority:false},{id:'e16t4',text:'Sat Writing: 200+ words, fewer than 3 errors',how:'<3 errors = B2 writing level.',isPriority:true},{id:'e16t5',text:'Sun: try speaking: explain your week (5 min)',how:'Next frontier. Start small.',isPriority:true}],mistakes:['Neglecting one skill. All four need practice.','Not trying speaking yet. Even 5 min builds confidence.']},{id:17,title:'Week 17 — BUFFER: Review & Polish',goal:'No new topics. Polish everything.',stage:3,isBuffer:true,tasks:[{id:'e17t1',text:'Catch up Weeks 14–16',how:''},{id:'e17t2',text:'Review difficult grammar units',how:'Write 5 sentences each.'},{id:'e17t3',text:'Practice self-test: 200 words, no AI',how:'Preview of final assessment.'},{id:'e17t4',text:'Organize Obsidian',how:'Clean logs, highlight learnings.'},{id:'e17t5',text:'Rest before final push',how:''}],mistakes:['Skipping buffer because "behind." Buffer is maintenance.']},{id:18,title:'Week 18 — Pre-Exam Preparation',goal:'Simulate ENG 1200 conditions.',stage:3,isBuffer:false,tasks:[{id:'e18t1',text:'Translation with timer: 15 min',how:'Speed+accuracy.',isPriority:true},{id:'e18t2',text:'Timed writing: 200 words in 30 min, no AI',how:'<3 errors goal.',isPriority:true},{id:'e18t3',text:'Wed: quick error spotting drills',how:'5 errors in 3 min.',isPriority:false},{id:'e18t4',text:'Sat: full exam simulation',how:'200 words,30 min,no help.',isPriority:true},{id:'e18t5',text:'Sun: identify top 3 weak points',how:'Focus final 2 weeks.',isPriority:true}],mistakes:['Panicking under time pressure. 18 weeks of training.','Changing writing style for exam. Be consistent.']},{id:19,title:'Week 19 — Mock Tests & Final Review',goal:'Full mock tests. Close gaps.',stage:3,isBuffer:false,tasks:[{id:'e19t1',text:'Two timed essays: 200 words, 30 min',how:'Mon+Thu. Different topics.',isPriority:true},{id:'e19t2',text:'Translation: Level 4 VOA, 15 min',how:'Level 4 comfortable = B2 ready.',isPriority:true},{id:'e19t3',text:'Wed: final grammar drill — #1 mistake',how:'Last focused session.',isPriority:false},{id:'e19t4',text:'Review all self-tests side by side',how:'Visible improvement = proof.',isPriority:true},{id:'e19t5',text:'Sun: light review + rest',how:'Do not cram. Trust the work.',isPriority:true}],mistakes:['Cramming new rules. Too late. Polish what you know.','Staying up late. Sleep > one more session.']},{id:20,title:'Week 20 — Final Assessment & Next Steps',goal:'Final self-test. Plan next level.',stage:3,isBuffer:false,tasks:[{id:'e20t1',text:'Final Self-Test: 200 words, 30 min, no AI',how:'Compare with Month 1. Fewer errors? More varied?',isPriority:true},{id:'e20t2',text:'Final reflection:"My English journey — B1 to B2"',how:'200 words. What changed.',isPriority:true},{id:'e20t3',text:'Review all 20 weeks of Obsidian',how:'Look at Week 1. Look at Week 20.',isPriority:false},{id:'e20t4',text:'Claim 60-day reward if earned',how:'You kept the promise.',isPriority:true},{id:'e20t5',text:'Plan next goal: speaking? IELTS?',how:'You built the habit. Aim it.',isPriority:true}],mistakes:['Stopping completely. Language fades. Maintenance 2–3 days/week.','Forgetting to celebrate. 20 weeks is real achievement.']}];
+
+        // ─── STATE ──────────────────────────────────────
+        const PK='studyhub_activePlan',SKT='sdet_tasks',SKS='sdet_streak',SKC='sdet_commit',SKW='sdet_week',SKD='sdet_dates',SKR='sdet_rewards',SKL='sdet_lastUpdated';
+        const EKT='eng_tasks',EKS='eng_streak',EKC='eng_commit',EKW='eng_week',EKD='eng_dates',EKR='eng_rewards';
+        let sdet={tasks:{},streak:0,commitment:{time:'',location:''},currentWeek:0,completedDates:{},rewards:{r30:'',r60:''}};
+        let eng={tasks:{},streak:0,commitment:{time:'',location:''},currentWeek:0,completedDates:{},rewards:{r30:'',r60:''}};
+
+        function getPlan(){return activePlan==='sdet'?sdet:eng}
+        function getWeeks(){return activePlan==='sdet'?sdetWeeks:engWeeks}
+        function getWeekData(){const w=getWeeks();const idx=getPlan().currentWeek;return w[idx]||w[0]}
+        function getTodayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+
+        function savePlan(p){
+            const pre=p===sdet?'sdet_':'eng_';
+            localStorage.setItem(pre+'tasks',JSON.stringify(p.tasks));
+            localStorage.setItem(pre+'streak',String(p.streak));
+            localStorage.setItem(pre+'commit',JSON.stringify(p.commitment));
+            localStorage.setItem(pre+'week',String(p.currentWeek));
+            localStorage.setItem(pre+'dates',JSON.stringify(p.completedDates));
+            localStorage.setItem(pre+'rewards',JSON.stringify(p.rewards));
+        }
+        function loadPlan(p){
+            const pre=p===sdet?'sdet_':'eng_';
+            try{const ts=JSON.parse(localStorage.getItem(pre+'tasks')||'{}');if(typeof ts==='object')p.tasks=ts;}catch(e){p.tasks={};}
+            try{p.streak=parseInt(localStorage.getItem(pre+'streak')||'0')||0;}catch(e){p.streak=0;}
+            try{const c=JSON.parse(localStorage.getItem(pre+'commit')||'{}');if(c)p.commitment={time:c.time||'',location:c.location||''};}catch(e){p.commitment={time:'',location:''};}
+            try{p.currentWeek=parseInt(localStorage.getItem(pre+'week')||'0')||0;}catch(e){p.currentWeek=0;}
+            try{const cd=JSON.parse(localStorage.getItem(pre+'dates')||'{}');if(cd)p.completedDates=cd;}catch(e){p.completedDates={};}
+            try{const r=JSON.parse(localStorage.getItem(pre+'rewards')||'{}');if(r)p.rewards={r30:r.r30||'',r60:r.r60||''};}catch(e){p.rewards={r30:'',r60:''};}
+            const weeks=p===sdet?sdetWeeks:engWeeks;
+            if(p.currentWeek<0||p.currentWeek>=weeks.length)p.currentWeek=0;
+        }
+        function saveAll(){savePlan(sdet);savePlan(eng);localStorage.setItem(PK,activePlan);localStorage.setItem(SKL,new Date().toISOString());}
+        function loadAll(){loadPlan(sdet);loadPlan(eng);activePlan=localStorage.getItem(PK)||'sdet';}
+
+        function getTotalStreak(){return Math.max(sdet.streak,eng.streak)}
+        function getAllCompletedDates(){return{...sdet.completedDates,...eng.completedDates}}
+
+        function calcWeekProgress(plan){
+            const weeks=plan===sdet?sdetWeeks:engWeeks;
+            const w=weeks[plan.currentWeek]||weeks[0];
+            const done=w.tasks.filter(t=>plan.tasks[t.id]).length;
+            return{done,total:w.tasks.length,pct:w.tasks.length>0?Math.round((done/w.tasks.length)*100):0};
+        }
+        function calcTotalProgress(plan){
+            const weeks=plan===sdet?sdetWeeks:engWeeks;
+            let td=0,ta=0;
+            weeks.forEach(w=>{w.tasks.forEach(t=>{ta++;if(plan.tasks[t.id])td++;})});
+            return{done:td,total:ta,pct:ta>0?Math.round((td/ta)*100):0};
+        }
+        function getMilestone(plan){
+            const wp=calcTotalProgress(plan);
+            const weeks=plan===sdet?sdetWeeks:engWeeks;
+            const ci=plan.currentWeek;
+            let stage=1;if(ci>=6&&ci<13)stage=2;if(ci>=13)stage=3;
+            let se=6;if(stage===2)se=13;if(stage===3)se=20;
+            const wte=Math.max(0,se-(ci+1));
+            const sns={1:'Foundation',2:'Building',3:'Mastery'};
+            const sn=plan===sdet?{1:'Stage 1',2:'Stage 2',3:'Stage 3'}:sns;
+            return{stage,stageEnd:se,weeksToStageEnd:wte,pct:wp.pct,stageName:sn[stage]||'Stage '+stage};
+        }
+
+        function isWeekComplete(plan){
+            const weeks=plan===sdet?sdetWeeks:engWeeks;
+            const w=weeks[plan.currentWeek]||weeks[0];
+            return w.tasks.every(t=>plan.tasks[t.id]);
+        }
+
+        function updateStreak(plan){
+            const today=getTodayKey();
+            if(plan.completedDates[today])return;
+            const weeks=plan===sdet?sdetWeeks:engWeeks;
+            const w=weeks[plan.currentWeek]||weeks[0];
+            if(w.tasks.some(t=>plan.tasks[t.id])){
+                plan.completedDates[today]=true;
+                let ns=1;const d=new Date();
+                for(let i=1;i<=365;i++){d.setDate(d.getDate()-1);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');if(plan.completedDates[k])ns++;else break;}
+                const old=plan.streak;plan.streak=ns;savePlan(plan);
+                if(plan.streak>old){animateStreak();checkRewards(plan);}
+            }
+        }
+
+        function animateStreak(){const b=document.getElementById('streakBadge');b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');document.getElementById('streakCount').textContent=getTotalStreak();}
+        function checkRewards(plan){if(plan.streak===30&&plan.rewards.r30)showToast('🎉 30-day streak! Reward: '+plan.rewards.r30,'success');if(plan.streak===60&&plan.rewards.r60)showToast('🏆 60-day streak! Reward: '+plan.rewards.r60,'success');}
+
+        function showToast(msg,type='info'){
+            const c=document.getElementById('toastContainer'),t=document.createElement('div');
+            t.className='toast toast--'+type;t.textContent=msg;c.appendChild(t);
+            document.getElementById('srAnnouncer').textContent=msg;
+            setTimeout(()=>{if(t.parentNode)t.remove();},3200);
+        }
+
+        function renderAll(){
+            document.getElementById('streakCount').textContent=getTotalStreak();
+            if(activePlan==='sdet'){renderPlanTabs();renderSdet();}
+            else{renderPlanTabs();renderEnglish();}
+            renderCalendar();
+            renderUserInfo();
+        }
+
+        function renderPlanTabs(){
+            document.querySelectorAll('.plan-tab').forEach(t=>{t.classList.toggle('plan-tab--active',t.dataset.plan===activePlan);});
+            document.getElementById('sdetPanel').classList.toggle('plan-panel--active',activePlan==='sdet');
+            document.getElementById('englishPanel').classList.toggle('plan-panel--active',activePlan==='english');
+        }
+
+        function renderSdet(){
+            const plan=sdet,weeks=sdetWeeks,w=weeks[plan.currentWeek]||weeks[0];
+            document.getElementById('sdetWeekTitle').textContent=w.title;
+            document.getElementById('sdetWeekGoal').textContent=w.goal;
+            const si=document.getElementById('sdetStageIndicator');si.textContent='Stage '+w.stage;si.className='stage-indicator stage-indicator--'+w.stage;
+            const wp=calcWeekProgress(plan);
+            document.getElementById('sdetWeekProgressText').textContent=wp.done+'/'+wp.total;
+            document.getElementById('sdetWeekProgressBar').style.width=wp.pct+'%';
+            const st=document.getElementById('sdetWeekStatus');st.classList.remove('status-label--not-started','status-label--in-progress','status-label--completed');
+            if(wp.pct===0){st.classList.add('status-label--not-started');st.textContent='Not started';}
+            else if(wp.pct===100){st.classList.add('status-label--completed');st.textContent='Completed ✓';}
+            else{st.classList.add('status-label--in-progress');st.textContent='In progress';}
+            const tc=document.getElementById('sdetWeekTabs');tc.innerHTML='';
+            weeks.forEach((ww,i)=>{const tb=document.createElement('button');tb.className='week-tab';if(i===plan.currentWeek)tb.classList.add('week-tab--active');if(ww.isBuffer)tb.classList.add('week-tab--buffer');tb.textContent=ww.isBuffer?`W${ww.id} ⏸`:`W${ww.id}`;tb.addEventListener('click',()=>{plan.currentWeek=i;saveAll();renderAll();});tc.appendChild(tb);});
+            tc.scrollLeft=Math.max(0,(plan.currentWeek-2)*60);
+            const tl=document.getElementById('sdetTaskList');tl.innerHTML='';
+            w.tasks.forEach((t,i)=>{const li=document.createElement('li');li.className='task-item';if(t.isPriority&&i<3)li.classList.add('task-item--priority');li.tabIndex=0;const cb=document.createElement('div');cb.className='task-checkbox'+(plan.tasks[t.id]?' checked':'');cb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';const td=document.createElement('div');const ts=document.createElement('span');ts.className='task-text'+(plan.tasks[t.id]?' done':'');ts.textContent=t.text;if(t.isPriority){const b=document.createElement('span');b.className='task-badge task-badge--must';b.textContent='must';ts.appendChild(b);}td.appendChild(ts);if(t.how){const h=document.createElement('div');h.className='task-how';h.textContent='🔹 '+t.how;td.appendChild(h);}li.appendChild(cb);li.appendChild(td);li.addEventListener('click',()=>{plan.tasks[t.id]=!plan.tasks[t.id];cb.classList.toggle('checked',plan.tasks[t.id]);ts.classList.toggle('done',plan.tasks[t.id]);updateStreak(plan);saveAll();renderSdet();renderCalendar();scheduleSync();if(isWeekComplete(plan)){const wc=document.getElementById('sdetWeekCard');wc.classList.remove('card--week-complete');void wc.offsetWidth;wc.classList.add('card--week-complete');showToast('🎉 SDET Week '+w.id+' completed!','success');}});tl.appendChild(li);});
+            document.getElementById('sdetCommitTime').value=plan.commitment.time||'';
+            document.getElementById('sdetCommitLocation').value=plan.commitment.location||'';
+            document.getElementById('sdetCommitDisplay').textContent=(plan.commitment.time||plan.commitment.location)?'📌 Every day at '+(plan.commitment.time||'___')+', at '+(plan.commitment.location||'___')+'.':'';
+            document.getElementById('sdetReward30').textContent=plan.rewards.r30||'(not set)';
+            document.getElementById('sdetReward60').textContent=plan.rewards.r60||'(not set)';
+            document.getElementById('sdetReward30Input').value=plan.rewards.r30||'';
+            document.getElementById('sdetReward60Input').value=plan.rewards.r60||'';
+            const mb=document.getElementById('sdetMistakesBody');
+            if(w.mistakes&&w.mistakes.length>0){mb.innerHTML='<h4>⚠️ Common Mistakes</h4><ul style="padding-left:18px;line-height:1.7">'+w.mistakes.map(m=>'<li style="font-size:var(--font-sm);margin-bottom:4px">'+m+'</li>').join('')+'</ul>';}else{mb.innerHTML='<p>No mistakes listed.</p>';}
+            updateSdetRing();
+        }
+
+        function renderEnglish(){
+            const plan=eng,weeks=engWeeks,w=weeks[plan.currentWeek]||weeks[0];
+            document.getElementById('engWeekTitle').textContent=w.title;
+            document.getElementById('engWeekGoal').textContent=w.goal;
+            const si=document.getElementById('engStageIndicator');const sns={1:'Foundation',2:'Building',3:'Mastery'};si.textContent=sns[w.stage]||'Stage '+w.stage;si.className='stage-indicator stage-indicator--'+w.stage;
+            const wp=calcWeekProgress(plan);
+            document.getElementById('engWeekProgressText').textContent=wp.done+'/'+wp.total;
+            document.getElementById('engWeekProgressBar').style.width=wp.pct+'%';
+            const st=document.getElementById('engWeekStatus');st.classList.remove('status-label--not-started','status-label--in-progress','status-label--completed');
+            if(wp.pct===0){st.classList.add('status-label--not-started');st.textContent='Not started';}
+            else if(wp.pct===100){st.classList.add('status-label--completed');st.textContent='Completed ✓';}
+            else{st.classList.add('status-label--in-progress');st.textContent='In progress';}
+            const tc=document.getElementById('engWeekTabs');tc.innerHTML='';
+            weeks.forEach((ww,i)=>{const tb=document.createElement('button');tb.className='week-tab';if(i===plan.currentWeek)tb.classList.add('week-tab--active');if(ww.isBuffer)tb.classList.add('week-tab--buffer');tb.textContent=ww.isBuffer?`W${ww.id} ⏸`:`W${ww.id}`;tb.addEventListener('click',()=>{plan.currentWeek=i;saveAll();renderAll();});tc.appendChild(tb);});
+            tc.scrollLeft=Math.max(0,(plan.currentWeek-2)*60);
+            const tl=document.getElementById('engTaskList');tl.innerHTML='';
+            w.tasks.forEach((t,i)=>{const li=document.createElement('li');li.className='task-item';if(t.isPriority&&i<3)li.classList.add('task-item--priority');li.tabIndex=0;const cb=document.createElement('div');cb.className='task-checkbox'+(plan.tasks[t.id]?' checked':'');cb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';const td=document.createElement('div');const ts=document.createElement('span');ts.className='task-text'+(plan.tasks[t.id]?' done':'');ts.textContent=t.text;if(t.isPriority){const b=document.createElement('span');b.className='task-badge task-badge--must';b.textContent='must';ts.appendChild(b);}td.appendChild(ts);if(t.how){const h=document.createElement('div');h.className='task-how';h.textContent='🔹 '+t.how;td.appendChild(h);}li.appendChild(cb);li.appendChild(td);li.addEventListener('click',()=>{plan.tasks[t.id]=!plan.tasks[t.id];cb.classList.toggle('checked',plan.tasks[t.id]);ts.classList.toggle('done',plan.tasks[t.id]);updateStreak(plan);saveAll();renderEnglish();renderCalendar();scheduleSync();if(isWeekComplete(plan)){const wc=document.getElementById('engWeekCard');wc.classList.remove('card--week-complete');void wc.offsetWidth;wc.classList.add('card--week-complete');showToast('🎉 English Week '+w.id+' completed!','success');}});tl.appendChild(li);});
+            document.getElementById('engCommitTime').value=plan.commitment.time||'';
+            document.getElementById('engCommitLocation').value=plan.commitment.location||'';
+            document.getElementById('engCommitDisplay').textContent=(plan.commitment.time||plan.commitment.location)?'📌 Every day at '+(plan.commitment.time||'___')+', at '+(plan.commitment.location||'___')+'.':'';
+            document.getElementById('engReward30').textContent=plan.rewards.r30||'(not set)';
+            document.getElementById('engReward60').textContent=plan.rewards.r60||'(not set)';
+            document.getElementById('engReward30Input').value=plan.rewards.r30||'';
+            document.getElementById('engReward60Input').value=plan.rewards.r60||'';
+            const mb=document.getElementById('engMistakesBody');
+            let html='';
+            if(w.mistakes&&w.mistakes.length>0){html+='<h4>⚠️ Common Mistakes</h4><ul style="padding-left:18px;line-height:1.7;margin-bottom:16px">'+w.mistakes.map(m=>'<li style="font-size:var(--font-sm);margin-bottom:4px">'+m+'</li>').join('')+'</ul>';}
+            html+='<h4>📝 Weekly Review</h4><ol style="padding-left:18px;line-height:1.7;font-size:var(--font-sm)"><li>What was my most common mistake?</li><li>Did any mistake type appear less?</li><li>What to be careful about next week?</li></ol>';
+            html+='<p style="margin-top:8px;font-size:var(--font-sm);color:var(--purple-dark);font-weight:500">✍️ <em>"I am a person who practices English every day."</em></p>';
+            mb.innerHTML=html;
+            updateEngRing();
+        }
+
+        function renderCalendar(){
+            const grid=document.getElementById('calendarGrid');
+            if(!grid)return;
+            grid.innerHTML='';
+            ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>{const dh=document.createElement('div');dh.className='calendar-day-header';dh.textContent=d;grid.appendChild(dh);});
+            const now=new Date(),year=now.getFullYear(),month=now.getMonth();
+            const firstDay=new Date(year,month,1).getDay(),daysInMonth=new Date(year,month+1,0).getDate();
+            const todayKey=getTodayKey(),todayNum=now.getDate();
+            const allDates=getAllCompletedDates();
+            for(let i=0;i<firstDay;i++){const e=document.createElement('div');e.className='calendar-day calendar-day--other';grid.appendChild(e);}
+            for(let d=1;d<=daysInMonth;d++){const key=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');const de=document.createElement('div');de.className='calendar-day';if(d===todayNum)de.classList.add('calendar-day--today');if(allDates[key])de.classList.add('calendar-day--completed');de.textContent=d;grid.appendChild(de);}
+            const egrid=document.getElementById('engCalendarGrid');
+            if(egrid){egrid.innerHTML='';['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>{const dh=document.createElement('div');dh.className='calendar-day-header';dh.textContent=d;egrid.appendChild(dh);});for(let i=0;i<firstDay;i++){const e=document.createElement('div');e.className='calendar-day calendar-day--other';egrid.appendChild(e);}for(let d=1;d<=daysInMonth;d++){const key=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');const de=document.createElement('div');de.className='calendar-day';if(d===todayNum)de.classList.add('calendar-day--today');if(allDates[key])de.classList.add('calendar-day--completed');de.textContent=d;egrid.appendChild(de);}}
+        }
+
+        function updateSdetRing(){
+            const ms=getMilestone(sdet),ring=document.getElementById('ringCircle'),circ=138.23;
+            ring.style.strokeDashoffset=circ-(ms.pct/100)*circ;
+            document.getElementById('ringLabel').textContent=ms.pct+'%';
+            document.getElementById('milestoneText').textContent=ms.weeksToStageEnd+' weeks to '+ms.stageName;
+            document.getElementById('milestoneSubtext').textContent='Overall: '+ms.pct+'% · '+ms.stageName;
+        }
+        function updateEngRing(){
+            const ms=getMilestone(eng),ring=document.getElementById('engRingCircle'),circ=138.23;
+            ring.style.strokeDashoffset=circ-(ms.pct/100)*circ;
+            document.getElementById('engRingLabel').textContent=ms.pct+'%';
+            document.getElementById('engMilestoneText').textContent=ms.weeksToStageEnd+' weeks to '+ms.stageName;
+            document.getElementById('engMilestoneSubtext').textContent='Overall: '+ms.pct+'% · '+ms.stageName;
+        }
+
+        function renderUserInfo(){
+            const info=document.getElementById('userInfo'),lb=document.getElementById('loginBtn'),ob=document.getElementById('logoutBtn');
+            if(currentUser){info.innerHTML=currentUser.photoURL?'<img src="'+currentUser.photoURL+'" class="user-avatar" alt=""> '+ (currentUser.displayName||'User'):'👤 '+(currentUser.displayName||'User');lb.style.display='none';ob.style.display='';}
+            else{info.innerHTML='';lb.style.display='';ob.style.display='none';}
+        }
+
+        function setSyncState(s){const b=document.getElementById('syncBadge');b.className='sync-badge sync-badge--'+s;const l={synced:'✅ Synced',syncing:'🔄 Syncing...',failed:'❌ Sync Failed',offline:'⚫ Offline'};b.textContent=l[s]||'⚫ Offline';}
+
+        function setupCountdown(btnId,labelId,plan,hints){
+            let active=false;const btn=document.getElementById(btnId),label=document.getElementById(labelId);
+            btn.addEventListener('click',()=>{if(active)return;active=true;btn.classList.add('counting');let sec=5;label.textContent='⏳ '+sec+'s — Get ready...';const iv=setInterval(()=>{sec--;if(sec<=0){clearInterval(iv);btn.classList.remove('counting');label.textContent='🚀 Start Studying';active=false;const hint=hints[Math.floor(Math.random()*hints.length)];const ha=document.getElementById('hintArea');ha.innerHTML='<div class="hint-banner">💡 '+hint+'</div>';setTimeout(()=>{ha.innerHTML='';},4000);document.getElementById(plan==='sdet'?'sdetWeekCard':'engWeekCard').scrollIntoView({behavior:'smooth',block:'start'});}else{label.textContent='⏳ '+sec+'s — Get ready...';}},1000);});
+        }
+
+        function setupCopyPrompt(btnId,boxId){
+            const btn=document.getElementById(btnId),box=document.getElementById(boxId);
+            if(!btn||!box)return;
+            btn.addEventListener('click',()=>{const text=box.textContent.trim();navigator.clipboard.writeText(text).then(()=>{btn.textContent='✅ Copied!';btn.classList.add('btn--copied');setTimeout(()=>{btn.textContent='📋 Copy AI Prompt';btn.classList.remove('btn--copied');},2000);}).catch(()=>showToast('Could not copy.','error'));});
+        }
+
+        function scheduleSync(){if(syncTimer)clearTimeout(syncTimer);syncTimer=setTimeout(performSync,2500);}
+        async function performSync(){if(!currentUser)return;setSyncState('syncing');try{const docRef=db.collection('learningPanels').doc(currentUser.uid);const localData={sdet:{tasks:sdet.tasks,streak:sdet.streak,commitment:sdet.commitment,currentWeekIndex:sdet.currentWeek,completedDates:sdet.completedDates,rewards:sdet.rewards},english:{tasks:eng.tasks,streak:eng.streak,commitment:eng.commitment,currentWeekIndex:eng.currentWeek,completedDates:eng.completedDates,rewards:eng.rewards},lastUpdated:new Date().toISOString(),uid:currentUser.uid};const docSnap=await docRef.get();if(docSnap.exists){const remote=docSnap.data();const rt=remote.lastUpdated?new Date(remote.lastUpdated).getTime():0;const lt=new Date(localStorage.getItem(SKL)||'1970-01-01').getTime();if(rt>lt){if(remote.sdet){sdet.tasks={...sdet.tasks,...remote.sdet.tasks};sdet.streak=Math.max(sdet.streak,remote.sdet.streak||0);if(remote.sdet.commitment)sdet.commitment={...sdet.commitment,...remote.sdet.commitment};if(remote.sdet.currentWeekIndex!==undefined)sdet.currentWeek=remote.sdet.currentWeekIndex;if(remote.sdet.completedDates)sdet.completedDates={...sdet.completedDates,...remote.sdet.completedDates};if(remote.sdet.rewards)sdet.rewards={...sdet.rewards,...remote.sdet.rewards};}if(remote.english){eng.tasks={...eng.tasks,...remote.english.tasks};eng.streak=Math.max(eng.streak,remote.english.streak||0);if(remote.english.commitment)eng.commitment={...eng.commitment,...remote.english.commitment};if(remote.english.currentWeekIndex!==undefined)eng.currentWeek=remote.english.currentWeekIndex;if(remote.english.completedDates)eng.completedDates={...eng.completedDates,...remote.english.completedDates};if(remote.english.rewards)eng.rewards={...eng.rewards,...remote.english.rewards};}saveAll();renderAll();showToast('📥 Loaded cloud data','info');}}await docRef.set(localData,{merge:true});localStorage.setItem(SKL,new Date().toISOString());setSyncState('synced');}catch(err){console.error('Sync failed:',err);setSyncState('failed');showToast('Sync failed: '+err.message,'error');}}
+        async function manualSync(){if(!currentUser){showToast('Sign in first.','info');return;}setSyncState('syncing');try{const docRef=db.collection('learningPanels').doc(currentUser.uid);const docSnap=await docRef.get();if(docSnap.exists){const r=docSnap.data();if(r.sdet){if(r.sdet.tasks)sdet.tasks={...sdet.tasks,...r.sdet.tasks};sdet.streak=Math.max(sdet.streak,r.sdet.streak||0);if(r.sdet.commitment)sdet.commitment={...sdet.commitment,...r.sdet.commitment};if(r.sdet.currentWeekIndex!==undefined)sdet.currentWeek=r.sdet.currentWeekIndex;if(r.sdet.completedDates)sdet.completedDates={...sdet.completedDates,...r.sdet.completedDates};if(r.sdet.rewards)sdet.rewards={...sdet.rewards,...r.sdet.rewards};}if(r.english){if(r.english.tasks)eng.tasks={...eng.tasks,...r.english.tasks};eng.streak=Math.max(eng.streak,r.english.streak||0);if(r.english.commitment)eng.commitment={...eng.commitment,...r.english.commitment};if(r.english.currentWeekIndex!==undefined)eng.currentWeek=r.english.currentWeekIndex;if(r.english.completedDates)eng.completedDates={...eng.completedDates,...r.english.completedDates};if(r.english.rewards)eng.rewards={...eng.rewards,...r.english.rewards};}saveAll();}const ld={sdet:{tasks:sdet.tasks,streak:sdet.streak,commitment:sdet.commitment,currentWeekIndex:sdet.currentWeek,completedDates:sdet.completedDates,rewards:sdet.rewards},english:{tasks:eng.tasks,streak:eng.streak,commitment:eng.commitment,currentWeekIndex:eng.currentWeek,completedDates:eng.completedDates,rewards:eng.rewards},lastUpdated:new Date().toISOString(),uid:currentUser.uid};await docRef.set(ld,{merge:true});localStorage.setItem(SKL,new Date().toISOString());setSyncState('synced');renderAll();showToast('✅ Synced','success');}catch(err){setSyncState('failed');showToast('Sync failed: '+err.message,'error');}}
+
+        function setupAuth(){
+            document.getElementById('loginBtn').addEventListener('click',async()=>{try{const r=await auth.signInWithPopup(googleProvider);currentUser=r.user;renderUserInfo();setSyncState('syncing');await manualSync();setSyncState('synced');showToast('✅ Signed in as '+(currentUser.displayName||'User'),'success');}catch(err){showToast('Login failed. Use localhost.','error');setSyncState('offline');}});
+            document.getElementById('logoutBtn').addEventListener('click',async()=>{await auth.signOut();currentUser=null;renderUserInfo();setSyncState('offline');showToast('Signed out. Local data preserved.','info');});
+            document.getElementById('manualSyncBtn').addEventListener('click',manualSync);
+            auth.onAuthStateChanged(async(user)=>{if(user){currentUser=user;renderUserInfo();setSyncState('syncing');await manualSync();setSyncState('synced');}else{currentUser=null;renderUserInfo();setSyncState('offline');}});
+        }
+
+        function setupEvents(){
+            document.querySelectorAll('.plan-tab').forEach(t=>{t.addEventListener('click',()=>{activePlan=t.dataset.plan;saveAll();renderAll();});});
+            document.getElementById('sdetSaveCommit').addEventListener('click',()=>{sdet.commitment.time=document.getElementById('sdetCommitTime').value.trim();sdet.commitment.location=document.getElementById('sdetCommitLocation').value.trim();saveAll();renderSdet();scheduleSync();showToast('✅ SDET commitment saved!','success');});
+            document.getElementById('sdetSaveRewards').addEventListener('click',()=>{sdet.rewards.r30=document.getElementById('sdetReward30Input').value.trim();sdet.rewards.r60=document.getElementById('sdetReward60Input').value.trim();saveAll();renderSdet();scheduleSync();showToast('✅ SDET rewards saved!','success');});
+            document.getElementById('sdetResetToday').addEventListener('click',()=>{const w=getWeekData();w.tasks.forEach(t=>{sdet.tasks[t.id]=false;});delete sdet.completedDates[getTodayKey()];saveAll();renderAll();scheduleSync();});
+            document.getElementById('sdetResetWeek').addEventListener('click',()=>{const w=getWeekData();w.tasks.forEach(t=>{sdet.tasks[t.id]=false;});saveAll();renderAll();scheduleSync();});
+            document.getElementById('sdetResetAll').addEventListener('click',()=>{if(confirm('Reset ALL SDET tasks?')){sdet.tasks={};sdet.completedDates={};sdet.streak=0;saveAll();renderAll();scheduleSync();}});
+            document.getElementById('engSaveCommit').addEventListener('click',()=>{eng.commitment.time=document.getElementById('engCommitTime').value.trim();eng.commitment.location=document.getElementById('engCommitLocation').value.trim();saveAll();renderEnglish();scheduleSync();showToast('✅ English promise saved!','success');});
+            document.getElementById('engSaveRewards').addEventListener('click',()=>{eng.rewards.r30=document.getElementById('engReward30Input').value.trim();eng.rewards.r60=document.getElementById('engReward60Input').value.trim();saveAll();renderEnglish();scheduleSync();showToast('✅ English rewards saved!','success');});
+            document.getElementById('engResetToday').addEventListener('click',()=>{const w=getWeekData();w.tasks.forEach(t=>{eng.tasks[t.id]=false;});delete eng.completedDates[getTodayKey()];saveAll();renderAll();scheduleSync();});
+            document.getElementById('engResetWeek').addEventListener('click',()=>{const w=getWeekData();w.tasks.forEach(t=>{eng.tasks[t.id]=false;});saveAll();renderAll();scheduleSync();});
+            document.getElementById('engResetAll').addEventListener('click',()=>{if(confirm('Reset ALL English tasks?')){eng.tasks={};eng.completedDates={};eng.streak=0;saveAll();renderAll();scheduleSync();}});
+            ['sdet','eng'].forEach(p=>{const toggle=document.getElementById(p+'MistakesToggle');if(!toggle)return;const content=toggle.nextElementSibling;const arrow=toggle.querySelector('.collapsible-arrow');let open=false;toggle.addEventListener('click',()=>{open=!open;content.classList.toggle('open',open);arrow.classList.toggle('open',open);});});
+            setupCountdown('sdetCountdown','sdetCountdownLabel','sdet',['Small progress still counts.','You\'ve got this.','Focus on execution.','Every task brings you closer.','Stay consistent.']);
+            setupCountdown('engCountdown','engCountdownLabel','english',['Small progress still counts. 5 sentences is enough.','You\'ve got this. One translation at a time.','Focus on accuracy, not speed.','Every day brings you closer to B2.','Never miss two days in a row.']);
+            setupCopyPrompt('engCopyPrompt','promptBox');
+        }
+
+        function init(){
+            loadAll();
+            setupAuth();
+            setupEvents();
+            renderAll();
+            document.getElementById('streakCount').textContent=getTotalStreak();
+            updateSdetRing();
+            updateEngRing();
+        }
+        init();
+    })();
+    </script>
+</body>
+</html>

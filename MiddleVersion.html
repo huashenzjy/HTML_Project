@@ -1,0 +1,2615 @@
+<!-- PART 1 / 3 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Tracker — SDET & English</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+    <style>
+        :root {
+            --bg: #F4F0FA;
+            --card-bg: rgba(255, 255, 255, 0.78);
+            --card-border: rgba(255, 255, 255, 0.55);
+            --purple: #7C5CFC;
+            --purple-dark: #5E3FD9;
+            --purple-light: #A78BFA;
+            --purple-glow: rgba(124, 92, 252, 0.25);
+            --green: #10B981;
+            --green-bg: #D1FAE5;
+            --amber: #F59E0B;
+            --amber-bg: #FEF3C7;
+            --red: #EF4444;
+            --red-bg: #FEE2E2;
+            --text: #1E1B2E;
+            --text-secondary: #5A5672;
+            --text-muted: #8B87A0;
+            --shadow-sm: 0 1px 3px rgba(30, 27, 46, 0.06), 0 1px 2px rgba(30, 27, 46, 0.04);
+            --shadow-md: 0 4px 16px rgba(30, 27, 46, 0.07), 0 2px 6px rgba(30, 27, 46, 0.04);
+            --shadow-lg: 0 12px 32px rgba(30, 27, 46, 0.10), 0 4px 10px rgba(30, 27, 46, 0.05);
+            --shadow-xl: 0 20px 48px rgba(30, 27, 46, 0.13), 0 6px 16px rgba(30, 27, 46, 0.06);
+            --radius-sm: 10px;
+            --radius: 16px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --font-xs: clamp(0.7rem, 1.5vw, 0.78rem);
+            --font-sm: clamp(0.8rem, 1.7vw, 0.88rem);
+            --font-base: clamp(0.9rem, 1.9vw, 0.98rem);
+            --font-md: clamp(1rem, 2.2vw, 1.12rem);
+            --font-lg: clamp(1.15rem, 2.6vw, 1.35rem);
+            --font-xl: clamp(1.4rem, 3.2vw, 1.7rem);
+            --font-2xl: clamp(1.7rem, 4vw, 2.2rem);
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding: clamp(12px, 3vw, 28px);
+            background-image: radial-gradient(ellipse at 15% 10%, rgba(124, 92, 252, 0.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 82% 75%, rgba(124, 92, 252, 0.05) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 40%, rgba(124, 92, 252, 0.03) 0%, transparent 60%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(14px, 2.5vw, 22px);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: clamp(16px, 3vw, 24px);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            transition: box-shadow var(--transition-slow), transform var(--transition-slow);
+            position: relative;
+            overflow: hidden;
+        }
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        .card--elevated {
+            box-shadow: var(--shadow-lg);
+        }
+        .card--glow {
+            box-shadow: var(--shadow-lg), 0 0 0 1px rgba(124, 92, 252, 0.12), 0 0 30px var(--purple-glow);
+        }
+
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: clamp(8px, 2vw, 16px);
+            justify-content: space-between;
+            padding: clamp(10px, 2vw, 16px) clamp(14px, 3vw, 22px);
+            border-radius: var(--radius-xl);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+        .top-bar__left {
+            display: flex;
+            align-items: center;
+            gap: clamp(8px, 2vw, 14px);
+            flex-wrap: wrap;
+        }
+        .top-bar__right {
+            display: flex;
+            align-items: center;
+            gap: clamp(6px, 1.5vw, 12px);
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-weight: 800;
+            font-size: var(--font-lg);
+            color: var(--purple);
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+        }
+        .logo span {
+            color: var(--text);
+            font-weight: 600;
+        }
+        .streak-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            color: #92400E;
+            font-weight: 700;
+            font-size: var(--font-sm);
+            padding: 7px 14px;
+            border-radius: 999px;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition);
+        }
+        .streak-badge.pop {
+            animation: streakPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes streakPop {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.28); }
+            60% { transform: scale(0.94); }
+            80% { transform: scale(1.06); }
+        }
+        .streak-badge svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .tracker-toggle {
+            display: flex;
+            gap: 4px;
+            background: #E8E4F4;
+            border-radius: 999px;
+            padding: 3px;
+        }
+        .tracker-toggle__btn {
+            padding: 7px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: var(--font-xs);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            transition: all var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 34px;
+        }
+        .tracker-toggle__btn--active {
+            background: #fff;
+            color: var(--purple);
+            box-shadow: var(--shadow-sm);
+        }
+        .tracker-toggle__btn:active {
+            transform: scale(0.94);
+        }
+
+        .sync-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: var(--font-xs);
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+            transition: all var(--transition);
+        }
+        .sync-badge--synced { background: #D1FAE5; color: #065F46; }
+        .sync-badge--syncing { background: #FEF3C7; color: #92400E; animation: pulseSync 0.8s ease-in-out infinite; }
+        .sync-badge--failed { background: #FEE2E2; color: #991B1B; }
+        .sync-badge--offline { background: #F3F4F6; color: #6B7280; }
+        @keyframes pulseSync {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.55; }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: clamp(8px, 1.5vw, 11px) clamp(14px, 2.5vw, 20px);
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: var(--font-sm);
+            cursor: pointer;
+            border: none;
+            transition: all var(--transition);
+            white-space: nowrap;
+            font-family: inherit;
+            min-height: 44px;
+            min-width: 44px;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn--primary { background: var(--purple); color: #fff; box-shadow: 0 2px 8px rgba(124, 92, 252, 0.3); }
+        .btn--primary:hover { background: var(--purple-dark); box-shadow: 0 4px 16px rgba(124, 92, 252, 0.4); }
+        .btn--primary:active { background: #4C2FB8; box-shadow: 0 1px 4px rgba(124, 92, 252, 0.3); }
+        .btn--outline { background: transparent; border: 2px solid var(--purple); color: var(--purple); }
+        .btn--outline:hover { background: rgba(124, 92, 252, 0.06); }
+        .btn--outline:active { background: rgba(124, 92, 252, 0.14); }
+        .btn--ghost { background: transparent; color: var(--text-secondary); border: 1px solid transparent; }
+        .btn--ghost:hover { background: rgba(124, 92, 252, 0.05); color: var(--purple); }
+        .btn--ghost:active { background: rgba(124, 92, 252, 0.12); }
+        .btn--danger { background: var(--red); color: #fff; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25); }
+        .btn--danger:hover { background: #DC2626; }
+        .btn--danger:active { background: #B91C1C; }
+        .btn--sm { padding: 6px 12px; font-size: var(--font-xs); min-height: 34px; border-radius: 999px; }
+        .btn--icon { width: 44px; height: 44px; padding: 0; border-radius: 50%; min-width: 44px; }
+        .btn--copy { background: #EDE9FE; color: var(--purple-dark); border: 1px solid rgba(124, 92, 252, 0.2); }
+        .btn--copy:hover { background: #DDD6FE; }
+        .btn--copy:active { background: #C4B5FD; }
+        .btn--copied { background: #D1FAE5 !important; color: #065F46 !important; border-color: #10B981 !important; }
+
+        .toast-container {
+            position: fixed;
+            bottom: clamp(16px, 4vw, 28px);
+            right: clamp(16px, 4vw, 28px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            background: #1E1B2E;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 999px;
+            font-size: var(--font-sm);
+            font-weight: 500;
+            box-shadow: var(--shadow-xl);
+            pointer-events: auto;
+            animation: toastIn 0.3s cubic-bezier(0.4, 0, 0.2, 1), toastOut 0.3s 3.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toast--success { border-left: 3px solid var(--green); }
+        .toast--error { border-left: 3px solid var(--red); }
+        .toast--info { border-left: 3px solid var(--purple); }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to { opacity: 0; transform: translateY(-10px) scale(0.9); }
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: var(--font-lg);
+            color: var(--text);
+            letter-spacing: -0.02em;
+        }
+        .section-subtitle {
+            font-size: var(--font-sm);
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+            gap: clamp(12px, 2.5vw, 20px);
+        }
+        .grid--2col { grid-template-columns: 1fr 1fr; }
+        @media (max-width: 720px) {
+            .grid--2col { grid-template-columns: 1fr; }
+        }
+
+        .progress-wrap { margin-top: 8px; }
+        .progress-label {
+            display: flex; justify-content: space-between;
+            font-size: var(--font-xs); color: var(--text-muted); margin-bottom: 4px; font-weight: 500;
+        }
+        .progress-bar {
+            height: 10px; border-radius: 999px; background: #E8E4F4;
+            overflow: hidden; box-shadow: inset 0 1px 3px rgba(30, 27, 46, 0.08); position: relative;
+        }
+        .progress-fill {
+            height: 100%; border-radius: 999px;
+            background: linear-gradient(135deg, var(--purple), #9B7CFC);
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px var(--purple-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+        .progress-fill::after {
+            content: ''; position: absolute; top: 1px; left: 8px; right: 8px;
+            height: 2px; background: rgba(255, 255, 255, 0.4); border-radius: 999px;
+        }
+
+        .ring-wrap { display: flex; align-items: center; gap: 10px; }
+        .ring-svg { width: clamp(40px, 7vw, 52px); height: clamp(40px, 7vw, 52px); flex-shrink: 0; transform: rotate(-90deg); }
+        .ring-bg { fill: none; stroke: #E8E4F4; stroke-width: 6; }
+        .ring-fill {
+            fill: none; stroke: var(--purple); stroke-width: 6; stroke-linecap: round;
+            transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 0 4px var(--purple-glow));
+        }
+        .ring-text { font-weight: 700; font-size: var(--font-sm); color: var(--purple); }
+
+        .task-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+        .task-item {
+            display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px;
+            border-radius: var(--radius-sm); transition: background var(--transition);
+            cursor: pointer; -webkit-tap-highlight-color: transparent; min-height: 44px;
+        }
+        .task-item:hover { background: rgba(124, 92, 252, 0.04); }
+        .task-item:active { background: rgba(124, 92, 252, 0.08); }
+        .task-item--priority {
+            border-left: 3px solid var(--purple);
+            background: rgba(124, 92, 252, 0.03);
+        }
+        .task-checkbox {
+            flex-shrink: 0; width: 22px; height: 22px; border-radius: 6px;
+            border: 2px solid #C4BFD6; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all var(--transition); margin-top: 2px; background: #fff;
+        }
+        .task-checkbox.checked {
+            background: var(--green); border-color: var(--green);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+        .task-checkbox.checked svg { opacity: 1; transform: scale(1); }
+        .task-checkbox svg {
+            width: 13px; height: 13px; color: #fff; opacity: 0; transform: scale(0.5);
+            transition: all var(--transition);
+        }
+        .task-text { flex: 1; font-size: var(--font-base); line-height: 1.5; transition: all var(--transition); }
+        .task-text.done { text-decoration: line-through; color: var(--text-muted); }
+        .task-how { font-size: var(--font-xs); color: var(--text-muted); margin-top: 2px; font-style: italic; }
+        .task-badge {
+            display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 7px;
+            border-radius: 999px; margin-left: 6px; vertical-align: middle;
+        }
+        .task-badge--must { background: #FEE2E2; color: #991B1B; }
+        .task-badge--important { background: #FEF3C7; color: #92400E; }
+
+        .week-tabs {
+            display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto; padding: 4px 0;
+            -webkit-overflow-scrolling: touch; scrollbar-width: none;
+        }
+        .week-tabs::-webkit-scrollbar { display: none; }
+        .week-tab {
+            flex-shrink: 0; padding: 8px 14px; border-radius: 999px; font-weight: 600;
+            font-size: var(--font-xs); cursor: pointer; border: 2px solid transparent;
+            background: transparent; color: var(--text-muted); transition: all var(--transition);
+            white-space: nowrap; font-family: inherit; min-height: 38px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .week-tab:active { transform: scale(0.94); }
+        .week-tab--active {
+            background: var(--purple); color: #fff; border-color: var(--purple);
+            box-shadow: 0 2px 8px rgba(124, 92, 252, 0.3);
+        }
+        .week-tab--buffer { border-color: #E8E4F4; background: #FAF8FD; color: var(--text-secondary); }
+        .week-tab--buffer.week-tab--active {
+            background: var(--amber); color: #92400E; border-color: var(--amber);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+        }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+        .calendar-day-header { font-weight: 600; font-size: var(--font-xs); color: var(--text-muted); padding: 6px 0; }
+        .calendar-day {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; font-size: var(--font-xs); font-weight: 500; cursor: default;
+            transition: all var(--transition); position: relative; min-width: 30px; min-height: 30px;
+        }
+        .calendar-day--today {
+            background: var(--purple); color: #fff; font-weight: 700;
+            box-shadow: 0 2px 8px rgba(124, 92, 252, 0.35);
+        }
+        .calendar-day--completed { background: #D1FAE5; color: #065F46; font-weight: 600; }
+        .calendar-day--completed::after {
+            content: '✓'; font-size: 0.65em; position: absolute; top: -2px; right: -2px;
+            background: var(--green); color: #fff; width: 14px; height: 14px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-weight: 700; line-height: 1;
+        }
+        .calendar-day--other { color: #D1CFDB; }
+
+        .collapsible-toggle {
+            display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;
+            font-size: var(--font-sm); color: var(--purple); background: none; border: none;
+            font-family: inherit; padding: 6px 0; -webkit-tap-highlight-color: transparent;
+            transition: color var(--transition);
+        }
+        .collapsible-toggle:hover { color: var(--purple-dark); }
+        .collapsible-toggle:active { transform: scale(0.96); }
+        .collapsible-arrow { transition: transform var(--transition-slow); display: inline-block; }
+        .collapsible-arrow.open { transform: rotate(180deg); }
+        .collapsible-content {
+            overflow: hidden; transition: max-height var(--transition-slow), opacity var(--transition-slow);
+            max-height: 0; opacity: 0;
+        }
+        .collapsible-content.open { max-height: 3000px; opacity: 1; }
+
+        .commit-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+        .commit-form input {
+            flex: 1 1 150px; padding: 11px 16px; border-radius: 999px; border: 2px solid #E0DCF0;
+            font-size: var(--font-sm); font-family: inherit; background: #fff;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            min-height: 44px; min-width: 120px;
+        }
+        .commit-form input:focus {
+            outline: none; border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.1);
+        }
+        @media (max-width: 480px) {
+            .commit-form { flex-direction: column; }
+            .commit-form input { flex: 1 1 auto; width: 100%; }
+            .commit-form .btn { width: 100%; }
+        }
+
+        .countdown-btn { position: relative; overflow: hidden; }
+        .countdown-btn__ring {
+            position: absolute; inset: 0; border-radius: 999px; pointer-events: none;
+            border: 3px solid transparent; transition: all 0.1s linear;
+        }
+        .countdown-btn.counting .countdown-btn__ring {
+            border-color: var(--purple-light);
+            animation: countdownRing 5s linear forwards;
+        }
+        @keyframes countdownRing {
+            0% { clip-path: inset(0 0 0 0); }
+            100% { clip-path: inset(0 0 100% 0); }
+        }
+
+        .card--week-complete { animation: weekGlow 0.7s ease-out; }
+        @keyframes weekGlow {
+            0% { box-shadow: 0 0 0 rgba(16, 185, 129, 0), var(--shadow-md); }
+            40% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.35), 0 0 0 8px rgba(16, 185, 129, 0.1), var(--shadow-lg); }
+            100% { box-shadow: var(--shadow-md); }
+        }
+
+        .stage-indicator {
+            display: inline-flex; align-items: center; gap: 6px; font-weight: 700;
+            font-size: var(--font-xs); padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+        }
+        .stage-indicator--1 { background: #EDE9FE; color: #5B21B6; }
+        .stage-indicator--2 { background: #DBEAFE; color: #1E40AF; }
+        .stage-indicator--3 { background: #D1FAE5; color: #065F46; }
+
+        .status-label {
+            display: inline-flex; align-items: center; gap: 5px; font-weight: 600;
+            font-size: var(--font-xs); padding: 5px 10px; border-radius: 999px; white-space: nowrap;
+        }
+        .status-label--not-started { background: #F3F4F6; color: #6B7280; }
+        .status-label--in-progress { background: #FEF3C7; color: #92400E; }
+        .status-label--completed { background: #D1FAE5; color: #065F46; }
+
+        .server-note {
+            font-size: var(--font-xs); color: var(--text-muted); background: #FAF8FD;
+            border-radius: var(--radius-sm); padding: 8px 12px; border: 1px dashed #E0DCF0; line-height: 1.5;
+        }
+        .server-note code {
+            background: #EDE9FE; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; color: var(--purple-dark);
+        }
+
+        .firestore-hint {
+            background: #FFF7ED; border-left: 4px solid #F97316; padding: 10px 14px;
+            border-radius: var(--radius-sm); font-size: var(--font-xs); color: #9A3412; margin-top: 8px;
+            white-space: pre-wrap; word-break: break-word;
+        }
+
+        .tech-search { width: 100%; padding: 10px 16px; border-radius: 999px; border: 2px solid #E0DCF0; font-size: var(--font-sm); font-family: inherit; background: #fff; transition: border-color var(--transition), box-shadow var(--transition); margin-bottom: 10px; min-height: 44px; }
+        .tech-search:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(124,92,252,0.1); }
+        .vocab-grid { display: flex; flex-direction: column; gap: 10px; }
+        .vocab-card { background: #fff; border: 1px solid #E8E4F4; border-radius: var(--radius); padding: 14px 16px; transition: all var(--transition); }
+        .vocab-card:hover { border-color: var(--purple-light); box-shadow: var(--shadow-sm); }
+        .vocab-card--reviewed { border-color: var(--green); background: #F0FDF4; }
+        .vocab-word { font-weight: 700; font-size: var(--font-md); color: var(--purple-dark); }
+        .vocab-pron { font-size: var(--font-xs); color: var(--text-muted); margin-left: 6px; font-style: italic; }
+        .vocab-def { font-size: var(--font-sm); color: var(--text); margin-top: 4px; line-height: 1.5; }
+        .vocab-code { background: #1E1B2E; color: #E8E4F4; padding: 8px 12px; border-radius: 6px; font-size: var(--font-xs); font-family: 'SF Mono','Fira Code',monospace; margin-top: 6px; white-space: pre-wrap; overflow-x: auto; line-height: 1.5; }
+        .vocab-interview { background: #EDE9FE; color: var(--purple-dark); padding: 8px 12px; border-radius: 6px; font-size: var(--font-xs); margin-top: 6px; font-style: italic; line-height: 1.5; }
+        .vocab-btn { margin-top: 8px; padding: 6px 14px; border-radius: 999px; font-weight: 600; font-size: var(--font-xs); cursor: pointer; border: 2px solid var(--purple); background: transparent; color: var(--purple); transition: all var(--transition); font-family: inherit; }
+        .vocab-btn:hover { background: rgba(124,92,252,0.06); }
+        .vocab-btn:active { transform: scale(0.95); }
+        .vocab-btn--done { background: var(--green); color: #fff; border-color: var(--green); }
+        .vocab-btn--done:hover { background: #059669; border-color: #059669; }
+        .pron-table { width: 100%; border-collapse: collapse; font-size: var(--font-sm); margin-top: 8px; }
+        .pron-table th { background: #EDE9FE; color: var(--purple-dark); padding: 8px 12px; text-align: left; font-weight: 600; }
+        .pron-table td { padding: 8px 12px; border-bottom: 1px solid #E8E4F4; }
+        .pron-table tr:hover { background: #FAF8FD; }
+        .tech-templates { display: flex; flex-direction: column; gap: 10px; }
+        .tech-template { background: #FFF7ED; border: 1px solid #FDE68A; border-radius: var(--radius); padding: 14px 16px; font-size: var(--font-sm); line-height: 1.6; }
+        .tech-template strong { color: #92400E; }
+        .tech-cheatsheet { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: var(--font-xs); }
+        @media (max-width:480px) { .tech-cheatsheet { grid-template-columns: 1fr; } }
+        .tech-cheat-item { display: flex; justify-content: space-between; padding: 6px 10px; background: #FAF8FD; border-radius: 6px; }
+        .tech-cheat-word { font-weight: 600; color: var(--purple-dark); }
+        .tech-cheat-def { color: var(--text-secondary); }
+        .tech-rules { display: flex; flex-direction: column; gap: 8px; }
+        .tech-rule { padding: 8px 12px; background: #FAF8FD; border-radius: 6px; border-left: 3px solid var(--purple); font-size: var(--font-sm); line-height: 1.5; }
+
+        .reward-box {
+            background: linear-gradient(135deg, #FFF7ED, #FFFBEB);
+            border: 1px solid #FDE68A;
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            font-size: var(--font-sm);
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+        .reward-box strong { color: #92400E; }
+
+        .never-miss-note {
+            background: #FEF2F2; border-left: 3px solid #EF4444;
+            padding: 8px 14px; border-radius: var(--radius-sm);
+            font-size: var(--font-xs); color: #991B1B; font-weight: 500; margin-top: 6px;
+        }
+
+        .prompt-box {
+            background: #1E1B2E; color: #E8E4F4; padding: 12px 16px;
+            border-radius: var(--radius-sm); font-size: var(--font-xs);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            white-space: pre-wrap; word-break: break-word; line-height: 1.6;
+            position: relative; margin-top: 8px; max-height: 120px; overflow-y: auto;
+        }
+
+        @media print {
+            body { background: #fff; padding: 0; }
+            .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; backdrop-filter: none; }
+            .btn, .top-bar__right, .toast-container, .week-tabs, .tracker-toggle { display: none; }
+            .top-bar { border: 1px solid #ddd; box-shadow: none; background: #fff; }
+        }
+
+        .sr-only {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+        }
+
+        .user-avatar {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--purple-light);
+        }
+        .user-info { display: flex; align-items: center; gap: 8px; font-size: var(--font-sm); font-weight: 500; }
+
+        .hint-banner {
+            background: linear-gradient(135deg, #EDE9FE, #F4F0FA); border-radius: var(--radius);
+            padding: 12px 18px; font-size: var(--font-sm); color: var(--purple-dark);
+            font-weight: 500; text-align: center;
+            animation: hintIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(124, 92, 252, 0.15);
+        }
+        @keyframes hintIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tracker-specific { transition: opacity var(--transition); }
+        .tracker-specific--hidden { display: none; }
+
+        @media (max-width: 380px) {
+            .top-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+            .top-bar__right { justify-content: center; }
+            .top-bar__left { justify-content: center; }
+            .calendar-day { font-size: 0.65rem; min-width: 24px; min-height: 24px; }
+            .calendar-day--completed::after { width: 10px; height: 10px; font-size: 0.5em; top: -1px; right: -1px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div aria-live="polite" aria-atomic="true" class="sr-only" id="srAnnouncer"></div>
+        <div class="toast-container" id="toastContainer"></div>
+
+        <header class="top-bar" role="banner">
+            <div class="top-bar__left">
+                <div class="logo" id="logoText">SDET<span>Tracker</span></div>
+                <div class="streak-badge" id="streakBadge" title="Current streak">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.66 8L12 2.35 6.34 8A8.02 8.02 0 004 13.64c0 4.42 3.58 8 8 8s8-3.58 8-8c0-2.12-.82-4.12-2.34-5.64zM12 18.5c-2.48 0-4.5-2.02-4.5-4.5 0-1.68.98-3.22 2.5-3.94V18.5h4V10.06c1.52.72 2.5 2.26 2.5 3.94 0 2.48-2.02 4.5-4.5 4.5z"/></svg>
+                    <span id="streakCount">0</span> day streak
+                </div>
+                <div class="tracker-toggle" id="trackerToggle" aria-label="Switch tracker">
+                    <button class="tracker-toggle__btn tracker-toggle__btn--active" data-tracker="sdet" aria-pressed="true">💻 SDET</button>
+                    <button class="tracker-toggle__btn" data-tracker="eng" aria-pressed="false">🇬🇧 English</button>
+                    <button class="tracker-toggle__btn" data-tracker="tech" aria-pressed="false">📖 Tech English</button>
+                </div>
+            </div>
+            <div class="top-bar__right">
+                <span class="sync-badge sync-badge--offline" id="syncBadge" aria-label="Sync status">⚫ Offline</span>
+                <button class="btn btn--ghost btn--sm" id="manualSyncBtn" title="Sync Now" aria-label="Sync Now">↻ Sync</button>
+                <span class="user-info" id="userInfo"></span>
+                <button class="btn btn--outline btn--sm" id="loginBtn" aria-label="Sign in with Google">Google Login</button>
+                <button class="btn btn--ghost btn--sm" id="logoutBtn" style="display:none;" aria-label="Sign out">Logout</button>
+            </div>
+        </header>
+
+        <div id="hintArea"></div>
+
+        <div class="grid grid--2col">
+            <div class="card" id="weekCard" style="grid-row: span 2;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <div>
+                        <h2 class="section-title" id="weekTitle">Week 1 — Java OOP</h2>
+                        <p class="section-subtitle" id="weekGoal">Write OOP code from scratch without notes.</p>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span class="status-label status-label--not-started" id="weekStatus">Not started</span>
+                        <span class="stage-indicator stage-indicator--1" id="stageIndicator">Stage 1</span>
+                    </div>
+                </div>
+                <div class="week-tabs" id="weekTabs" role="tablist" aria-label="Week navigation"></div>
+                <div class="progress-wrap">
+                    <div class="progress-label"><span>Weekly progress</span><span id="weekProgressText">0/5 tasks</span></div>
+                    <div class="progress-bar"><div class="progress-fill" id="weekProgressBar" style="width:0%;"></div></div>
+                </div>
+                <input class="tech-search" id="techSearchInput" type="text" placeholder="🔍 Search vocabulary words..." style="display:none;">
+                <ul class="task-list" id="taskList" aria-label="Weekly tasks"></ul>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                    <button class="btn btn--ghost btn--sm" id="resetTodayBtn" aria-label="Reset today's tasks">↺ Reset Today</button>
+                    <button class="btn btn--ghost btn--sm" id="resetWeekBtn" aria-label="Reset this week">↺ Reset Week</button>
+                    <button class="btn btn--ghost btn--sm" id="resetAllBtn" aria-label="Reset all tasks">↺ Reset All</button>
+                </div>
+                <div class="never-miss-note tracker-specific" id="neverMissNote" style="margin-top:10px;">
+                    ⚡ <strong>Never miss two days in a row.</strong> If you miss one day, do the minimum (5 sentences) the next day.
+                </div>
+            </div>
+
+            <div class="card" id="calendarCard">
+                <h3 class="section-title" style="font-size:var(--font-md);">📅 Study Calendar</h3>
+                <div class="calendar-grid" id="calendarGrid" aria-label="Monthly calendar"></div>
+                <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <div class="ring-wrap">
+                        <svg class="ring-svg" viewBox="0 0 52 52" aria-label="Progress ring">
+                            <circle class="ring-bg" cx="26" cy="26" r="22"/>
+                            <circle class="ring-fill" id="ringCircle" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="138.23"/>
+                        </svg>
+                        <span class="ring-text" id="ringLabel">0%</span>
+                    </div>
+                    <div>
+                        <strong style="font-size:var(--font-sm);" id="milestoneText">20 weeks to milestone</strong>
+                        <p style="font-size:var(--font-xs);color:var(--text-muted);" id="milestoneSubtext">Stage 1 of 3</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="commitCard">
+                <h3 class="section-title" style="font-size:var(--font-md);">⏰ My Daily Promise</h3>
+                <p style="font-size:var(--font-xs);color:var(--text-muted);margin-bottom:6px;" id="commitSubtitle">Be specific — research shows this triples your success.</p>
+                <div class="commit-form" id="commitForm">
+                    <input type="text" id="commitTime" placeholder="e.g., 7:00 PM" aria-label="Study time" maxlength="20">
+                    <input type="text" id="commitLocation" placeholder="e.g., Desk / Library" aria-label="Study location" maxlength="40">
+                    <button class="btn btn--primary" id="saveCommitBtn" aria-label="Save commitment">Save</button>
+                </div>
+                <p style="font-size:var(--font-xs);color:var(--text-muted);margin-top:6px;" id="commitDisplay"></p>
+
+                <div class="reward-box tracker-specific" id="rewardSection">
+                    <strong>🎁 My Rewards:</strong><br>
+                    After 30 days: <span style="color:var(--purple-dark);font-weight:600;" id="reward30">(not set yet)</span><br>
+                    After 60 days: <span style="color:var(--purple-dark);font-weight:600;" id="reward60">(not set yet)</span>
+                </div>
+                <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;" class="tracker-specific" id="rewardInputsSection">
+                    <input type="text" id="reward30Input" placeholder="30-day reward" aria-label="30 day reward" style="flex:1;min-width:100px;padding:6px 10px;border-radius:999px;border:1px solid #E0DCF0;font-size:var(--font-xs);font-family:inherit;">
+                    <input type="text" id="reward60Input" placeholder="60-day reward" aria-label="60 day reward" style="flex:1;min-width:100px;padding:6px 10px;border-radius:999px;border:1px solid #E0DCF0;font-size:var(--font-xs);font-family:inherit;">
+                    <button class="btn btn--ghost btn--sm" id="saveRewardsBtn">Set Rewards</button>
+                </div>
+
+                <button class="btn btn--primary countdown-btn" id="countdownBtn" style="margin-top:10px;width:100%;" aria-label="Start Learning - 5 second countdown">
+                    <span class="countdown-btn__ring"></span>
+                    <span id="countdownLabel">🚀 Start Learning</span>
+                </button>
+
+                <div style="margin-top:10px;" class="tracker-specific" id="copyPromptSection">
+                    <button class="btn btn--copy btn--sm" id="copyPromptBtn" aria-label="Copy AI prompt">
+                        📋 Copy AI Prompt
+                    </button>
+                </div>
+                <div class="prompt-box tracker-specific" id="promptBox">
+I am a B1 English learner.
+Correct my grammar errors only.
+Focus on: verb form, verb tense (especially past perfect misuse), and clause structure.
+Explain each correction briefly.
+Do not change my vocabulary or ideas.
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <button class="collapsible-toggle" id="mistakesToggle" aria-expanded="false" aria-controls="mistakesContent">
+                <span class="collapsible-arrow" id="mistakesArrow">▸</span> ⚠️ Common Mistakes & Review — <span style="font-weight:400;color:var(--text-muted);">click to expand</span>
+            </button>
+            <div class="collapsible-content" id="mistakesContent">
+                <div style="padding-top:12px;" id="mistakesBody">
+                    <p style="color:var(--text-muted);">Select a week to see common mistakes and review prompts.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="server-note" style="text-align:center;">
+            💡 <strong>Google login tip:</strong> If login fails, serve this page locally — run <code>python -m http.server 8080</code> then open <code>http://localhost:8080/</code> (not <code>file://</code>)
+        </div>
+        <div id="firestoreHintArea"></div>
+    </div>
+
+    <script>
+        (function() {
+            // ──────────────────────────────────────────────
+            // FIREBASE CONFIG
+            // ──────────────────────────────────────────────
+            const firebaseConfig = {
+                apiKey: "AIzaSyDp1Dl78ovJ7X8lKOCe9WYIvsPrnT2oyxc",
+                authDomain: "sdet-tracker.firebaseapp.com",
+                projectId: "sdet-tracker",
+                storageBucket: "sdet-tracker.firebasestorage.app",
+                messagingSenderId: "491562975282",
+                appId: "1:491562975282:web:260e9e7008b4e9acc53c2b",
+                measurementId: "G-0YJT8P87JC"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+            const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+            // ──────────────────────────────────────────────
+            // TRACKER CONFIGURATION
+            // ──────────────────────────────────────────────
+            const trackerConfig = {
+                sdet: {
+                    name: 'SDET',
+                    logoHTML: 'SDET<span>Tracker</span>',
+                    stageNames: { 1: 'Stage 1', 2: 'Stage 2', 3: 'Stage 3' },
+                    storagePrefix: 'sdet',
+                    hasRewards: false,
+                    hasCopyPrompt: false,
+                    hasNeverMissNote: false,
+                    milestoneLabel: 'weeks to milestone',
+                    milestoneSubtext: 'Stage {stage} of 3',
+                    weekGoalLabel: '',
+                    commitPlaceholderTime: 'e.g., 7:00 PM',
+                    commitPlaceholderLocation: 'e.g., Desk / Library',
+                    countdownLabel: '🚀 Start Learning',
+                    commitSubtitle: '',
+                    hints: [
+                        'Small progress still counts. Keep the streak alive!',
+                        'You\'ve got this. One task at a time.',
+                        'Focus on execution, not perfection.',
+                        'Every completed task brings you closer to the offer.',
+                        'Stay consistent. Consistency beats intensity.',
+                    ],
+                },
+                eng: {
+                    name: 'English',
+                    logoHTML: 'Eng<span>Tracker</span>',
+                    stageNames: { 1: 'Foundation', 2: 'Building', 3: 'Mastery' },
+                    storagePrefix: 'eng',
+                    hasRewards: true,
+                    hasCopyPrompt: true,
+                    hasNeverMissNote: true,
+                    milestoneLabel: 'weeks to B2',
+                    milestoneSubtext: '{stageName} phase',
+                    weekGoalLabel: '',
+                    commitPlaceholderTime: 'e.g., 9:30 PM',
+                    commitPlaceholderLocation: 'e.g., At my desk',
+                    countdownLabel: '🚀 Start Studying',
+                    commitSubtitle: 'Be specific — research shows this triples your success.',
+                    hints: [
+                        'Small progress still counts. 5 sentences is enough.',
+                        'You\'ve got this. One translation at a time.',
+                        'Focus on accuracy, not speed.',
+                        'Every day of practice brings you closer to B2.',
+                        'Stay consistent. The streak is your proof.',
+                        'Never miss two days in a row. One day is an accident.',
+                        'I am a person who practices English every day.',
+                    ],
+                },
+                tech: {
+                    name: 'Tech English',
+                    logoHTML: 'Tech<span>English</span>',
+                    stageNames: { 1: 'Stage 1', 2: 'Stage 2', 3: 'Stage 3' },
+                    storagePrefix: 'techEng',
+                    hasRewards: false,
+                    hasCopyPrompt: false,
+                    hasNeverMissNote: false,
+                    milestoneLabel: 'weeks to milestone',
+                    milestoneSubtext: 'Stage {stage} of 3',
+                    weekGoalLabel: '',
+                    commitPlaceholderTime: 'e.g., 7:00 PM',
+                    commitPlaceholderLocation: 'e.g., Desk / Library',
+                    countdownLabel: '🚀 Study Tech Vocab',
+                    commitSubtitle: '',
+                    hints: [
+                        'Learn the words you need, when you need them.',
+                        'Pick 3 words and write one sentence using each.',
+                        'In buffer weeks, review vocab from past weeks.',
+                        'Mark words you keep forgetting. Review those first.',
+                        'Technical vocabulary sets you apart in interviews.',
+                    ],
+                },
+            };
+
+            let activeTracker = localStorage.getItem('current_tracker') || 'sdet';
+            if (activeTracker !== 'sdet' && activeTracker !== 'eng' && activeTracker !== 'tech') activeTracker = 'sdet';
+
+            function getConfig() { return trackerConfig[activeTracker]; }
+            function getStoragePrefix() { return getConfig().storagePrefix; }
+
+            // ──────────────────────────────────────────────
+            // SDET WEEKS DATA
+            // ──────────────────────────────────────────────
+            const sdetWeeksData = [{
+                id: 1, title: 'Week 1 — Java OOP: Classes, Inheritance, Interfaces',
+                goal: 'Write OOP code from scratch without notes.', stage: 1, isBuffer: false,
+                tasks: [
+                    { id: 'w1t1', text: 'Install IntelliJ IDEA + JDK 17', how: 'Download from official sites. Create a Maven project. Hello World runs without errors.' },
+                    { id: 'w1t2', text: 'Write Animal parent class + Dog and Cat children', how: 'Parent has eat(). Each child has sound(). Run it. You demonstrate polymorphism without looking at notes.' },
+                    { id: 'w1t3', text: 'Write Shape interface + Circle and Rectangle', how: 'Interface has area(). Both implement it correctly. Both return correct values.' },
+                    { id: 'w1t4', text: 'Create GitHub repo java-practice. First push.', how: 'git init → add → commit → push. Repo visible on GitHub with a real commit message.' },
+                    { id: 'w1t5', text: 'Obsidian: "What is OOP? What is inheritance? What is an interface?" in your own words.', how: 'No copy-paste. Write from understanding. You can say each explanation out loud without reading.' },
+                ],
+                mistakes: [
+                    'Forgot @Override: code may still run but logic is silently wrong. Always add it.',
+                    'Git push rejected: run git pull --rebase first.',
+                    'Interface method not implemented: Java gives a compile error. Read the error. It tells you exactly what is missing.',
+                ],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 2, title: 'Week 2 — Collections + Exception Handling',
+                goal: 'Use List, Map, Set without notes. Write try-catch that handles real failure cases.', stage: 1, isBuffer: false,
+                tasks: [
+                    { id: 'w2t1', text: 'Write 10 ArrayList operations from scratch', how: 'add, remove, sort, search, size, contains, iterate, clear, get by index, subList. All 10 correct from memory.' },
+                    { id: 'w2t2', text: 'Write a HashMap: city → population. Print all entries.', how: 'Use entrySet() for iteration. Output is correct. You can explain keySet() vs entrySet().' },
+                    { id: 'w2t3', text: 'Write divide(a, b) that throws DivisionByZeroException', how: 'Custom exception class. Try-catch in caller. All edge cases handled: zero, negative, normal.' },
+                    { id: 'w2t4', text: 'Build Student Grade Manager (command line)', how: 'HashMap<String, Integer>. Add, query, delete. Handle all bad input. Runs without crashing. Push to GitHub on a branch. Merge via PR.' },
+                    { id: 'w2t5', text: 'Obsidian: "When do I use List vs Map vs Set?"', how: 'One example per type. Your own words. You can answer this in 45 seconds in an interview.' },
+                ],
+                mistakes: [
+                    'NullPointerException getting HashMap value: use getOrDefault() or containsKey() first.',
+                    'ConcurrentModificationException: never remove from a collection inside a for-each loop. Use Iterator.remove().',
+                ],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 3, title: 'Week 3 — Testing Thinking + Basic Test Design',
+                goal: 'Write tests that cover normal, edge, and negative cases. Understand what makes a good test before you write a single framework line.', stage: 1, isBuffer: false,
+                tasks: [
+                    { id: 'w3t1', text: 'Write test cases on paper for divide(a, b) — no code. Just scenarios.', how: 'List: normal inputs, zero divisor, both negative, one null, very large numbers. At least 8 test cases written with expected results.' },
+                    { id: 'w3t2', text: 'Write test cases for login form: valid, wrong password, empty, SQL injection, 300-char input', how: 'Paper only first. Then write as JUnit tests. You cover at least 6 scenarios.' },
+                    { id: 'w3t3', text: 'Write JUnit 5 tests for your Student Grade Manager. Cover all 3 case types.', how: '@Test, @ParameterizedTest, assertThrows. Every method has at least 3 tests. All green.' },
+                    { id: 'w3t4', text: 'Break your own code on purpose. Fix it.', how: 'Comment out one validation. Watch the test fail. Fix. You understand what test failure messages mean.' },
+                    { id: 'w3t5', text: 'Obsidian: "What is the difference between normal, edge, and negative test cases? Give one example each."', how: 'You can answer this without notes in an interview.' },
+                ],
+                mistakes: [
+                    'Only writing tests for expected success: this is the most common and expensive mistake in real testing.',
+                    'Not reading the assertion error message: the message tells you exactly what went wrong. Read it before debugging.',
+                ],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 4, title: 'Week 4 — BUFFER WEEK', goal: 'No new topics. Catch up, review, or rest.', stage: 1, isBuffer: true,
+                tasks: [
+                    { id: 'w4t1', text: 'Catch up on Week 1–3 tasks that are incomplete', how: 'You missed days or skipped tasks.' },
+                    { id: 'w4t2', text: 'Re-do any task from scratch without notes', how: 'You feel uncertain about any concept.' },
+                    { id: 'w4t3', text: 'Write Obsidian review notes for everything learned so far', how: 'You want to consolidate before moving on.' },
+                    { id: 'w4t4', text: 'Rest completely', how: 'You are burned out. Rest is not failure.' },
+                    { id: 'w4t5', text: 'Debug any code that is still broken', how: 'Fix it now before it becomes technical debt.' },
+                ],
+                mistakes: ['Do not start Week 5 content until Week 4 buffer is used. Even if you feel fine, use the buffer to review and reinforce.'],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 5, title: 'Week 5 — Maven + Git Workflow',
+                goal: 'Build and manage Maven projects. Use Git branches like a professional.', stage: 1, isBuffer: false,
+                tasks: [
+                    { id: 'w5t1', text: 'Draw Maven folder structure from memory. Then verify.', how: 'No notes first. Draw src/main/java, src/test/java, target/, pom.xml. You explain every folder\'s purpose without reading.' },
+                    { id: 'w5t2', text: 'Add JUnit 5 dependency to pom.xml. Run mvn test from terminal.', how: 'Find coordinates on mvnrepository.com. Use terminal, not IDE run button. mvn test passes in terminal.' },
+                    { id: 'w5t3', text: 'Create branch feature/grade-manager. Add one feature. Merge to main. Do 3 times.', how: 'Terminal only. git checkout -b → add → commit → push → PR → merge. Three clean PRs visible on GitHub.' },
+                    { id: 'w5t4', text: 'Create a merge conflict on purpose. Resolve it manually.', how: 'Edit same line on two branches. Merge. Fix the <<<<<< markers by hand. Conflict resolved. You are no longer afraid of conflicts.' },
+                    { id: 'w5t5', text: 'Write a professional README.md for java-practice.', how: 'Project description, how to run, tech stack. A stranger can read it and run the project.' },
+                ],
+                mistakes: [
+                    'Using IntelliJ GUI for Git: learn terminal commands. They work the same everywhere.',
+                    'pom.xml XML error: IntelliJ underlines it. Read the error. Usually a missing closing tag.',
+                ],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 6, title: 'Week 6 — JUnit 5 Deep Dive + Stage 1 Project',
+                goal: 'Write professional unit tests. Finish and publish the first portfolio project.', stage: 1, isBuffer: false,
+                tasks: [
+                    { id: 'w6t1', text: 'Add @ParameterizedTest to your Grade Manager tests. Use @CsvSource with 6 data rows.', how: 'One test method runs all 6 rows. All 6 pass.' },
+                    { id: 'w6t2', text: 'Use assertThrows to verify all custom exceptions are thrown correctly.', how: 'Tests pass. You can explain what assertThrows returns.' },
+                    { id: 'w6t3', text: 'Build Library Management System (Stage 1 Project)', how: 'Add book, borrow book, return book, query status. OOP + Collections + Exceptions + JUnit 5. All tests green. TDD: tests written before code.' },
+                    { id: 'w6t4', text: 'Write README.md for Library project. Include class diagram, how to run, test screenshot.', how: 'A stranger runs it in under 5 minutes.' },
+                    { id: 'w6t5', text: 'Push to GitHub. Clean commit history. At least 8 commits with meaningful messages.', how: 'feat:, test:, fix:, docs: prefixes. Commit history tells the story of how you built it.' },
+                ],
+                mistakes: [
+                    'Tests without assertions are not tests. Always assert something meaningful.',
+                    'Skipping edge cases in TDD: TDD means writing the test for the edge case before writing the code that handles it.',
+                ],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 7, title: 'Week 7 — API Basics + Postman',
+                goal: 'Understand HTTP and REST well enough to design API tests. Use Postman to test real APIs manually.', stage: 2, isBuffer: false,
+                tasks: [
+                    { id: 'w7t1', text: 'Obsidian: What does each HTTP method do? One real example per method. From memory.', how: 'No copying. You answer "PUT vs PATCH" in 30 seconds without notes.' },
+                    { id: 'w7t2', text: 'Test JSONPlaceholder API in Postman. Run GET, POST, PUT, DELETE on /posts.', how: 'https://jsonplaceholder.typicode.com. All 4 methods work. You understand each request structure.' },
+                    { id: 'w7t3', text: 'Write Postman test scripts: assert status code, assert one response field, assert response time under 2 seconds.', how: 'pm.test() and pm.expect(). All 3 assertions pass.' },
+                    { id: 'w7t4', text: 'Create Postman Environment with {{base_url}}. Use it in all requests.', how: 'Changing the environment changes all request URLs at once.' },
+                    { id: 'w7t5', text: 'Obsidian: "What is the difference between 401 and 403? Between 400 and 422? Between 200 and 201?"', how: 'One real scenario each. You answer these instantly in interviews.' },
+                ],
+                mistakes: [
+                    '401 vs 403: 401 = not authenticated. 403 = authenticated but not allowed. Different problems, different fixes.',
+                    'POST returning 400: check Content-Type: application/json header. Forgetting it causes most POST failures.',
+                ],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 8, title: 'Week 8 — Selenium WebDriver Foundations',
+                goal: 'Write stable Selenium tests without Thread.sleep. Understand locator strategies.', stage: 2, isBuffer: false,
+                tasks: [
+                    { id: 'w8t1', text: 'Add selenium-java 4.x + WebDriverManager to pom.xml. Open a browser and close it.', how: '5 lines of code. No manual ChromeDriver download. Browser opens and closes. No errors.' },
+                    { id: 'w8t2', text: 'Write a test: open Google, search "SDET interview", assert title contains "SDET".', how: 'Write yourself. No copy-paste. Test passes. Assert is correct.' },
+                    { id: 'w8t3', text: 'Write 10 locators for real page elements: ID, name, CSS, XPath (absolute, relative, contains(), starts-with()).', how: 'Use browser DevTools → Elements. Write your own locators. Each finds the element. You explain why each works.' },
+                    { id: 'w8t4', text: 'Remove all Thread.sleep. Replace with WebDriverWait + ExpectedConditions.', how: 'Practice on an element with a 2-second delay. Zero Thread.sleep in your code.' },
+                    { id: 'w8t5', text: 'Obsidian: "Implicit wait vs explicit wait vs Fluent wait." Code example for each.', how: 'You explain the difference in 60 seconds without notes.' },
+                ],
+                mistakes: [
+                    'NoSuchElementException: element not loaded → add explicit wait.',
+                    'StaleElementReferenceException: page changed after you found the element → re-find it inside the action.',
+                    'CSS vs XPath: prefer CSS for simple cases. Use XPath for contains(), starts-with(), or going up the DOM.',
+                ],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 9, title: 'Week 9 — BUFFER WEEK', goal: 'No new topics. Catch up on Week 7–8. Review locators and waits.', stage: 2, isBuffer: true,
+                tasks: [
+                    { id: 'w9t1', text: 'Catch up on any incomplete Week 7–8 tasks', how: '' },
+                    { id: 'w9t2', text: 'Review locator strategies: write 20 XPaths and CSS selectors from memory', how: '' },
+                    { id: 'w9t3', text: 'Revisit WebDriverWait until it is automatic', how: '' },
+                    { id: 'w9t4', text: 'Review all Postman notes and HTTP status codes', how: '' },
+                    { id: 'w9t5', text: 'Rest if needed', how: '' },
+                ],
+                mistakes: ['Self-check: Can you write a WebDriverWait without looking at documentation? Can you name 5 ExpectedConditions without notes? Can you explain 400 vs 401 vs 403 without hesitation? If not, use this buffer week to fix it.'],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 10, title: 'Week 10 — Page Object Model (POM)',
+                goal: 'Refactor all Selenium code into POM. Test classes must have zero findElement() calls.', stage: 2, isBuffer: false,
+                tasks: [
+                    { id: 'w10t1', text: 'Draw POM architecture on paper: BasePage → LoginPage → HomePage.', how: 'Draw before coding. You explain each layer\'s job in 30 seconds.' },
+                    { id: 'w10t2', text: 'Refactor Week 8 code into POM. Create pages/ package. Move all locators.', how: 'No findElement() may remain in test class. Test class reads like English.' },
+                    { id: 'w10t3', text: 'Build GoogleSearchPage with searchFor(keyword) and getFirstResultTitle().', how: 'Test class has zero locators or driver calls.' },
+                    { id: 'w10t4', text: 'Build BasePage with WebDriverWait setup. All pages extend BasePage.', how: 'Every page uses shared wait logic.' },
+                    { id: 'w10t5', text: 'Obsidian: "Why use POM? What breaks after 3 months without it?" Write 4 specific problems.', how: 'You answer "Why POM?" convincingly in any interview.' },
+                ],
+                mistakes: [
+                    'driver.findElement() in the test class: if you see this, you are doing it wrong.',
+                    'PageFactory.initElements() missing: if you use @FindBy, you must call this in the constructor. Otherwise everything is null.',
+                ],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 11, title: 'Week 11 — Selenium Advanced + TestNG + Reports',
+                goal: 'Handle complex UI elements. Run tests with TestNG. Generate an HTML report.', stage: 2, isBuffer: false,
+                tasks: [
+                    { id: 'w11t1', text: 'Handle dropdown with Select. Handle alert popup. Handle iframe.', how: 'Use the-internet.herokuapp.com for practice. All 3 work. You explain each approach.' },
+                    { id: 'w11t2', text: 'Screenshot on failure: capture in @AfterMethod when test fails. Save with timestamp.', how: 'TakesScreenshot. Use System.currentTimeMillis() in filename. Failed test saves screenshot automatically.' },
+                    { id: 'w11t3', text: 'Add TestNG. Create testng.xml with smoke and regression groups.', how: 'Each group runs independently.' },
+                    { id: 'w11t4', text: 'Add ExtentReports. Generate HTML report. Attach screenshots on failure.', how: 'ITestListener implementing onTestFailure. Report opens in browser. Failure shows screenshot.' },
+                    { id: 'w11t5', text: 'Push all updates to GitHub. Add report screenshot to README.', how: 'README shows what the report looks like.' },
+                ],
+                mistakes: [
+                    'Parallel tests sharing one WebDriver: causes crashes. Use ThreadLocal<WebDriver> in WebDriverFactory. This is mandatory for parallel execution.',
+                    'ExtentReports empty: you forgot extent.flush() in @AfterSuite.',
+                ],
+                reviewQuestions: [],
+                identityStatement: '',
+            }, {
+                id: 12, title: 'Week 12 — RestAssured + API Automation Foundations',
+                goal: 'Write API tests with RestAssured. Validate JSON responses.', stage: 2, isBuffer: false,
+                tasks: [
+                    { id: 'w12t1', text: 'Add RestAssured dependency. Write a GET request to JSONPlaceholder.', how: 'Assert status code 200. Log response body.' },
+                    { id: 'w12t2', text: 'Write POST, PUT, PATCH, DELETE requests with RestAssured.', how: 'Use .body() for POST/PUT. Assert status codes: 201 for POST, 200 for PUT/PATCH, 200 for DELETE.' },
+                    { id: 'w12t3', text: 'Validate JSON response body: use JsonPath, Hamcrest matchers.', how: 'Assert specific fields, nested objects, array sizes.' },
+                    { id: 'w12t4', text: 'Create a BaseTest class with shared RestAssured.baseURI and request specification.', how: 'All test classes extend BaseTest. No repeated setup.' },
+                    { id: 'w12t5', text: 'Obsidian: "How is API testing different from UI testing?" Write 5 differences.', how: 'You can answer this in an interview with specific examples.' },
+                ],
+                mistakes: [
+                    'Forgetting .contentType("application/json") on POST requests.',
+                    'Not validating response time: slow APIs are bugs too. Use .time() matcher.',
+                ],
+                reviewQuestions: [],
+                identityStatement: '',
+            },
+            // [SDET weeks 13-20 continue in Part 2]
+
+            // ──────────────────────────────────────────────
+            // This is the end of Part 1.
+            // The file continues with SDET weeks 13-20,
+            // English weeksData, and all JavaScript logic.
+            // ──────────────────────────────────────────────
+
+                // SDET Weeks 13-20 continuation
+                {
+                    id: 13, title: 'Week 13 — API Framework + Stage 2 Project',
+                    goal: 'Build a complete API automation framework. Publish Stage 2 project.', stage: 2, isBuffer: false,
+                    tasks: [
+                        { id: 'w13t1', text: 'Build a reusable API test framework with config, base classes, and utilities.', how: 'Separate config (base URL, endpoints), request specs, response parsers.' },
+                        { id: 'w13t2', text: 'Write a full test suite for a public API (e.g., JSONPlaceholder or ReqRes).', how: 'Cover all CRUD operations, negative cases, and edge cases.' },
+                        { id: 'w13t3', text: 'Add ExtentReports or Allure for API test reporting.', how: 'Reports show request/response details for debugging.' },
+                        { id: 'w13t4', text: 'Write a professional README. Push to GitHub with clean commit history.', how: 'README: project description, tech stack, how to run, report screenshot.' },
+                        { id: 'w13t5', text: 'Update your portfolio: now you have both UI and API automation projects on GitHub.', how: 'Both repos have professional READMEs. Both run with one command.' },
+                    ],
+                    mistakes: [
+                        'Skipping negative test cases in API tests: test 400, 401, 404 responses too.',
+                        'Hardcoding API keys or URLs: use config files or environment variables.',
+                    ],
+                    reviewQuestions: [],
+                    identityStatement: '',
+                }, {
+                    id: 14, title: 'Week 14 — BUFFER WEEK', goal: 'No new topics. Catch up on Weeks 10–13. Polish Stage 2 projects.', stage: 2, isBuffer: true,
+                    tasks: [
+                        { id: 'w14t1', text: 'Catch up on any incomplete Week 10–13 tasks', how: '' },
+                        { id: 'w14t2', text: 'Polish both UI and API automation projects on GitHub', how: '' },
+                        { id: 'w14t3', text: 'Review POM and RestAssured patterns until they feel automatic', how: '' },
+                        { id: 'w14t4', text: 'Write Obsidian summary of everything learned in Stage 2', how: '' },
+                        { id: 'w14t5', text: 'Rest if needed before Stage 3', how: '' },
+                    ],
+                    mistakes: ['Don\'t rush into Stage 3 with unfinished Stage 2 projects. Employers look at your GitHub. Polish now.'],
+                    reviewQuestions: [],
+                    identityStatement: '',
+                }, {
+                    id: 15, title: 'Week 15 — BDD + Cucumber',
+                    goal: 'Understand BDD. Write feature files and step definitions.', stage: 3, isBuffer: false,
+                    tasks: [
+                        { id: 'w15t1', text: 'Obsidian: "What is BDD? How is it different from TDD?"', how: 'Explain Gherkin syntax: Given-When-Then. One real example.' },
+                        { id: 'w15t2', text: 'Add Cucumber dependencies. Write a .feature file for a login scenario.', how: 'Feature: Login. Scenario: valid login, invalid login. Run with Cucumber runner.' },
+                        { id: 'w15t3', text: 'Implement step definitions in Java. Link feature file to Selenium POM.', how: 'Step defs call Page Object methods. No driver code in step defs.' },
+                        { id: 'w15t4', text: 'Generate Cucumber HTML report. Verify all scenarios pass.', how: 'Report shows feature-level results.' },
+                        { id: 'w15t5', text: 'Obsidian: "Pros and cons of BDD for SDET roles." Write 3 pros and 3 cons.', how: 'Be honest. Some teams love it, some skip it. Know why.' },
+                    ],
+                    mistakes: [
+                        'Overcomplicating feature files: keep them readable by non-technical stakeholders.',
+                        'Putting Selenium code directly in step definitions: always delegate to POM.',
+                    ],
+                    reviewQuestions: [],
+                    identityStatement: '',
+                }, {
+                    id: 16, title: 'Week 16 — CI/CD + GitHub Actions',
+                    goal: 'Configure CI/CD pipeline. Tests run automatically on push.', stage: 3, isBuffer: false,
+                    tasks: [
+                        { id: 'w16t1', text: 'Obsidian: "What is CI/CD? Why do SDETs need it?"', how: 'Explain continuous integration, continuous delivery. Real SDET workflow example.' },
+                        { id: 'w16t2', text: 'Create .github/workflows/maven.yml for your UI automation project.', how: 'Trigger on push. Run mvn test. Upload test reports as artifacts.' },
+                        { id: 'w16t3', text: 'Add headless browser configuration for CI environment.', how: 'ChromeOptions: --headless, --no-sandbox, --disable-dev-shm-usage.' },
+                        { id: 'w16t4', text: 'Create a second workflow for the API automation project.', how: 'Both projects have CI badges in their READMEs.' },
+                        { id: 'w16t5', text: 'Obsidian: "What happens when CI fails? Walk through your debugging process."', how: 'You can explain: check logs → reproduce locally → fix → push → verify CI passes.' },
+                    ],
+                    mistakes: [
+                        'Not testing CI config locally: use act or manually verify YAML syntax before pushing.',
+                        'Forgetting to upload test artifacts: you need the report to debug failures.',
+                    ],
+                    reviewQuestions: [],
+                    identityStatement: '',
+                }, {
+                    id: 17, title: 'Week 17 — Capstone Project Build (Part 1)',
+                    goal: 'Design and start building the capstone project.', stage: 3, isBuffer: false,
+                    tasks: [
+                        { id: 'w17t1', text: 'Design capstone project: choose a real website or API to test.', how: 'Pick something you can show in an interview. Not a tutorial site. Document the test plan.' },
+                        { id: 'w17t2', text: 'Set up project structure: Maven, packages, base classes, config.', how: 'Clean architecture from day one. POM for UI, RestAssured for API.' },
+                        { id: 'w17t3', text: 'Write first 5 UI test cases with POM.', how: 'Cover login, search, navigation. All pass. Screenshot on failure.' },
+                        { id: 'w17t4', text: 'Write first 5 API test cases with RestAssured.', how: 'Cover GET, POST, negative cases. All pass.' },
+                        { id: 'w17t5', text: 'Push initial commit. Include test plan in README.', how: 'README explains what the project tests and why.' },
+                    ],
+                    mistakes: [
+                        'Starting without a test plan: you\'ll waste time testing random things. Plan first.',
+                        'Choosing a site that changes frequently: pick something stable for your portfolio.',
+                    ],
+                    reviewQuestions: [],
+                    identityStatement: '',
+                }, {
+                    id: 18, title: 'Week 18 — Capstone Project Build (Part 2)',
+                    goal: 'Complete capstone project. Add reports, CI, and polish.', stage: 3, isBuffer: false,
+                    tasks: [
+                        { id: 'w18t1', text: 'Add 10+ more test cases across UI and API.', how: 'Cover edge cases, negative scenarios, boundary values.' },
+                        { id: 'w18t2', text: 'Integrate ExtentReports or Allure. Generate professional HTML reports.', how: 'Reports attach screenshots for failures. Clear pass/fail summary.' },
+                        { id: 'w18t3', text: 'Add GitHub Actions CI workflow. Verify tests run in CI.', how: 'CI badge in README. Tests pass on every push.' },
+                        { id: 'w18t4', text: 'Write a stellar README: project overview, tech stack, how to run, report screenshots, CI badge.', how: 'A recruiter can understand the project in 2 minutes.' },
+                        { id: 'w18t5', text: 'Record a 2-minute demo video (optional but recommended).', how: 'Screen recording of tests running + report. Link in README.' },
+                    ],
+                    mistakes: [
+                        'README with no screenshots: visuals matter. Show the report, show the CI badge.',
+                        'Skipping CI: employers want to see you know how to integrate testing into a pipeline.',
+                    ],
+                    reviewQuestions: [],
+                    identityStatement: '',
+                }, {
+                    id: 19, title: 'Week 19 — BUFFER WEEK',
+                    goal: 'No new topics. Polish everything. Prepare for interview sprint.', stage: 3, isBuffer: true,
+                    tasks: [
+                        { id: 'w19t1', text: 'Final review of all 3 GitHub projects: READMEs, code quality, CI badges', how: '' },
+                        { id: 'w19t2', text: 'Practice explaining each project out loud in English (2 min each)', how: '' },
+                        { id: 'w19t3', text: 'Update resume with project links and skills', how: '' },
+                        { id: 'w19t4', text: 'Do at least one mock interview with a friend or online platform', how: '' },
+                        { id: 'w19t5', text: 'Rest and prepare mentally for the application sprint', how: '' },
+                    ],
+                    mistakes: ['Waiting until the last minute to practice English explanations: start now. Verbal fluency takes repetition.'],
+                    reviewQuestions: [],
+                    identityStatement: '',
+                }, {
+                    id: 20, title: 'Week 20 — Interview Sprint + Final Applications',
+                    goal: 'Apply for jobs. Do mock interviews. Land the offer.', stage: 3, isBuffer: false,
+                    tasks: [
+                        { id: 'w20t1', text: 'Apply to 10+ SDET / QA Automation positions', how: 'Tailor resume for each. Include GitHub links.' },
+                        { id: 'w20t2', text: 'Practice top 20 SDET interview questions out loud', how: 'Java OOP, Selenium, POM, RestAssured, CI/CD, testing concepts.' },
+                        { id: 'w20t3', text: 'Do at least 2 mock interviews', how: 'Record yourself. Review. Improve.' },
+                        { id: 'w20t4', text: 'Review all Obsidian notes. Fill any knowledge gaps.', how: 'If you can\'t explain a concept in 60 seconds, review it.' },
+                        { id: 'w20t5', text: 'Send follow-up emails. Track applications in a spreadsheet.', how: 'Company, role, date applied, status, next step.' },
+                    ],
+                    mistakes: [
+                        'Applying without practicing explanations first: you\'ll fail phone screens. Practice out loud.',
+                        'Resume with skills but no project links: employers need to see your code. Make it easy to find.',
+                    ],
+                    reviewQuestions: [],
+                    identityStatement: '',
+                }
+            ];
+
+            // ──────────────────────────────────────────────
+            // ENGLISH WEEKS DATA
+            // ──────────────────────────────────────────────
+            const engWeeksData = [{
+                id: 1,
+                title: 'Week 1 — Grammar Foundation: Simple Past & Past Perfect',
+                goal: 'Read grammar units. Learn when to use each tense. Write your own examples.',
+                stage: 1,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew1t1', text: 'Read Unit 5–6: Simple Past — when to use it', how: 'Read once. No exercises yet. Then write 2–3 sentences about yesterday using simple past.', isPriority: true },
+                    { id: 'ew1t2', text: 'Read Unit 15–16: Past Perfect — the real rule', how: 'You use past perfect too much. Learn when it is actually needed. Write 2 sentences with and without it.', isPriority: true },
+                    { id: 'ew1t3', text: 'Write 4 sentences comparing Simple Past vs Past Perfect', how: 'Example: "I ate dinner. Then I went to bed." vs "I had already eaten when she arrived."', isPriority: false },
+                    { id: 'ew1t4', text: 'Set up your Obsidian daily log template', how: 'Copy the template from the plan. Create folder: English/Logs/. Ready for Week 3.', isPriority: false },
+                    { id: 'ew1t5', text: 'Fill in your promise: exact time, place, and both rewards', how: 'Use the commitment card above. Be specific. Research shows this triples success rates.', isPriority: true },
+                ],
+                mistakes: [
+                    'Using past perfect when simple past is enough. Ask: "Did this happen before another past action?" If not, use simple past.',
+                    'Reading grammar without writing your own sentences. Reading alone does not fix mistakes.',
+                    'Skipping the Obsidian setup. When Week 3 starts, you need your log ready.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 2,
+                title: 'Week 2 — Grammar Foundation: Verb Forms & Relative Clauses',
+                goal: 'Master verb patterns and relative clauses. Finish the grammar framework.',
+                stage: 1,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew2t1', text: 'Read Unit 25–27: Verb forms — "help me do", "make it look"', how: 'These patterns are common in English. Write 3 sentences about your daily life using them.', isPriority: true },
+                    { id: 'ew2t2', text: 'Read Unit 75–76: Relative Clauses — which / that / who', how: 'Write 3 sentences with relative clauses about people you know.', isPriority: true },
+                    { id: 'ew2t3', text: 'Read Unit 77–78: Relative Clauses — continued practice', how: 'Write 3 sentences about things you own using which/that.', isPriority: false },
+                    { id: 'ew2t4', text: 'Review Week 1 grammar: write 3 sentences from memory', how: 'No book. Write from memory. Check after. This proves real understanding.', isPriority: true },
+                    { id: 'ew2t5', text: 'Find 5 VOA Level 2 stories for next week', how: 'Go to learningenglish.voanews.com. Save them. Ask AI for Chinese translations.', isPriority: true },
+                ],
+                mistakes: [
+                    'Forgetting the verb after relative pronouns: "The man who lives next door" (not "who live").',
+                    'Confusing "which" (things) and "who" (people). "That" works for both but sounds less formal.',
+                    'Not reviewing Week 1 material. Grammar builds like layers. Weak foundation = weak everything.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 3,
+                title: 'Week 3 — Start Main Training: Translation Practice',
+                goal: 'Begin the daily translation loop. This is the core of the whole plan.',
+                stage: 1,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew3t1', text: 'Mon: Translation Practice (25 min) — review yesterday\'s mistakes + translate', how: 'Review 2–3 mistake sentences. Then translate today\'s VOA story from Chinese. Do not look at the English original.', isPriority: true },
+                    { id: 'ew3t2', text: 'Tue: Translation Practice — self-check first, then AI correction', how: 'Check verb forms yourself first. Then send to ChatGPT with the saved prompt. Record mistakes in Obsidian.', isPriority: true },
+                    { id: 'ew3t3', text: 'Wed: Grammar Focus — find your most common mistake this week', how: 'Look at your Obsidian records. Read that grammar unit. Write 8 sentences. Send to AI for correction.', isPriority: true },
+                    { id: 'ew3t4', text: 'Thu & Fri: Translation Practice — follow the same 25-min routine', how: 'Both days: review → translate → self-check → AI correction → record mistakes.', isPriority: false },
+                    { id: 'ew3t5', text: 'Sun: Review + prepare next week\'s 5 VOA stories', how: 'Find 5 new Level 2 or 3 stories. Get AI Chinese translations. Save as Mon–Fri materials in Obsidian.', isPriority: true },
+                ],
+                mistakes: [
+                    'Looking at the English original while translating. This defeats the purpose. Translate first, compare after.',
+                    'Skipping self-check before AI. You must learn to find your own errors. AI is for verification, not replacement.',
+                    'Not recording mistakes in Obsidian. Without records, you repeat the same errors every week.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 4,
+                title: 'Week 4 — Translation + Add VOA Reading',
+                goal: 'Continue translation practice. Add 10 minutes of reading per day.',
+                stage: 1,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew4t1', text: 'Continue Mon/Tue/Thu/Fri translation practice (25 min each)', how: 'Same routine. The loop is now: review mistakes → translate → self-check → AI correction → record.', isPriority: true },
+                    { id: 'ew4t2', text: 'After translation: read one new VOA article (10 min)', how: 'Do not translate. Just read. 80% understanding is enough. This builds reading speed.', isPriority: true },
+                    { id: 'ew4t3', text: 'Wed: Grammar Focus — check if your most common mistake changed', how: 'Compare this week\'s mistakes with Week 3. Are you making fewer verb form errors?', isPriority: false },
+                    { id: 'ew4t4', text: 'Sat: Writing Day — 150-word essay with relative clause + adverbial clause', how: 'Choose a topic from the plan. Self-check first. Then AI correction. Record all mistakes.', isPriority: true },
+                    { id: 'ew4t5', text: 'Sun: Weekly review + prepare materials + identity statement', how: 'Answer the 3 review questions. Write: "I am a person who practices English every day."', isPriority: true },
+                ],
+                mistakes: [
+                    'Trying to understand every word when reading. Stop at 80%. Guessing from context is a real skill.',
+                    'Skipping the identity statement on Sunday. This small habit builds long-term motivation.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 5,
+                title: 'Week 5 — Translation Practice + Grammar Focus',
+                goal: 'Keep the routine. Start noticing your own errors before AI tells you.',
+                stage: 1,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew5t1', text: 'Translation practice Mon–Fri: focus on catching your own errors first', how: 'Before sending to AI, try to find at least 2 errors yourself. Circle them in your text.', isPriority: true },
+                    { id: 'ew5t2', text: 'Keep your Obsidian error table updated every day', how: 'Columns: What I Wrote | Correct Version | Mistake Type. Mark repeated mistakes with "again".', isPriority: true },
+                    { id: 'ew5t3', text: 'Wed Grammar Focus: drill the mistake that appeared most this week', how: 'Read the unit. Write 8 sentences. Send to AI. If the same mistake appears, read the unit again.', isPriority: false },
+                    { id: 'ew5t4', text: 'Sat Writing: 150-word essay — check verb forms and clauses yourself', how: 'Required: 1 relative clause + 1 adverbial clause. No past perfect unless you are sure.', isPriority: true },
+                    { id: 'ew5t5', text: 'Sun: Review + count how many errors you found yourself this week', how: 'Compare with Week 4. Can you find more errors without AI help? This is real progress.', isPriority: true },
+                ],
+                mistakes: [
+                    'Rushing through self-check. Slow down. Finding your own errors is more important than finishing fast.',
+                    'Not marking repeated mistakes with "again." This signal helps you prioritize what to fix.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 6,
+                title: 'Week 6 — Error Reduction + Month 1 Self-Test',
+                goal: 'Reduce verb form errors. Take the monthly self-test.',
+                stage: 1,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew6t1', text: 'Translation practice: aim to find 3+ errors yourself before AI', how: 'Check: verb form, verb tense, clause structure. These three only.', isPriority: true },
+                    { id: 'ew6t2', text: 'Month 1 Self-Test: write 150 words on a new topic. Find your own errors.', how: 'No AI. Count how many errors you found yourself. Compare with the start of the month.', isPriority: true },
+                    { id: 'ew6t3', text: 'Review all Obsidian records from Month 1', how: 'What was your most common mistake? Did any mistake type disappear?', isPriority: false },
+                    { id: 'ew6t4', text: 'Sat Writing: compare your essay quality with Week 3', how: 'Are your sentences more varied? Fewer verb form errors? This visible progress is motivating.', isPriority: true },
+                    { id: 'ew6t5', text: 'Sun: Prepare for Stage 2 — organize materials, review goals', how: 'Check: is your daily routine stable? If not, adjust. Stage 2 adds listening.', isPriority: true },
+                ],
+                mistakes: [
+                    'Skipping the monthly self-test. This is your only objective measure. Do it even if you feel tired.',
+                    'Comparing yourself to native speakers. Compare yourself to Week 1. Progress is the only metric that matters.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 7,
+                title: 'Week 7 — Building: Translation + Writing Focus',
+                goal: 'Keep translation practice. Increase writing quality.',
+                stage: 2,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew7t1', text: 'Translation practice Mon–Fri: continue the loop', how: 'Review → translate → self-check → AI → record. This is automatic now.', isPriority: true },
+                    { id: 'ew7t2', text: 'Focus on clause structure this week', how: 'In every translation, check: are my relative clauses complete? (which/that/who + subject + verb)', isPriority: true },
+                    { id: 'ew7t3', text: 'Wed Grammar Focus: relative clauses and adverbial clauses', how: 'Re-read Units 75–78 if needed. Write 8 sentences combining both clause types.', isPriority: false },
+                    { id: 'ew7t4', text: 'Sat Writing: 150–200 words. Use at least 2 relative clauses + 2 adverbial clauses', how: 'Required: because/although/when + which/that/who. Self-check before AI.', isPriority: true },
+                    { id: 'ew7t5', text: 'Sun: Review + identity statement + prepare materials', how: 'Write: "I am a person who practices English every day." Check your streak.', isPriority: true },
+                ],
+                mistakes: [
+                    'Writing incomplete clauses: "The book that I read" — needs a verb after. "The book that I read was interesting."',
+                    'Forgetting that adverbial clauses need a subject and verb: "Because I was tired" (not "Because tired").',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 8,
+                title: 'Week 8 — Add CNN 10 Listening',
+                goal: 'Continue all practice. Add 10 minutes of listening per day.',
+                stage: 2,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew8t1', text: 'Translation practice Mon–Fri: keep the routine (25 min)', how: 'After Week 7, the translation loop should feel familiar. Keep the rhythm.', isPriority: true },
+                    { id: 'ew8t2', text: 'After translation: watch one CNN 10 episode (10 min)', how: 'Listen once without subtitles. Then read transcript. Then listen again. Do not try to understand every word.', isPriority: true },
+                    { id: 'ew8t3', text: 'Wed Grammar Focus + check if listening helps your writing', how: 'After a week of listening, do you notice any new phrases appearing in your writing?', isPriority: false },
+                    { id: 'ew8t4', text: 'Sat Writing: 150–200 words. Use at least one phrase you heard on CNN 10', how: 'This connects listening to writing. Natural language acquisition.', isPriority: true },
+                    { id: 'ew8t5', text: 'Sun: Review + prepare materials + check streak', how: 'If your streak is 50+ days, plan your 30/60-day reward. You earned it.', isPriority: true },
+                ],
+                mistakes: [
+                    'Trying to understand every word in CNN 10. Just follow the main idea. Detailed understanding comes later.',
+                    'Stopping translation practice to make time for listening. Translation is still the core. Listening is extra.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 9,
+                title: 'Week 9 — BUFFER: Review & Catch Up',
+                goal: 'No new topics. Catch up, review, or rest.',
+                stage: 2,
+                isBuffer: true,
+                tasks: [
+                    { id: 'ew9t1', text: 'Catch up on any incomplete Week 7–8 tasks', how: 'You missed days or tasks. Fix them now.' },
+                    { id: 'ew9t2', text: 'Re-read any grammar unit you still feel unsure about', how: 'Especially: Units 15–16 (Past Perfect), 75–78 (Relative Clauses).' },
+                    { id: 'ew9t3', text: 'Review all Obsidian error records from Week 1 to now', how: 'Look at your progress. Which mistakes disappeared? Which still appear?' },
+                    { id: 'ew9t4', text: 'Write a 150-word reflection: "How has my English changed?"', how: 'Be honest. Compare your writing now with Week 1. This visible proof is motivating.' },
+                    { id: 'ew9t5', text: 'Rest if needed. A buffer week is not failure — it is part of the plan.', how: 'Rest now prevents burnout later. Come back fresh for Week 10.' },
+                ],
+                mistakes: [
+                    'Feeling guilty about buffer week. The plan includes buffer weeks on purpose. Real life happens.',
+                    'Starting Week 10 without finishing Week 7–8 tasks. Fix gaps before moving forward.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 10,
+                title: 'Week 10 — Translation + Listening Practice',
+                goal: 'Stabilize the full routine. Translation + reading + listening.',
+                stage: 2,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew10t1', text: 'Translation practice Mon–Fri: now 25 min feels normal', how: 'Review → translate → self-check → AI → record. This is your daily anchor.', isPriority: true },
+                    { id: 'ew10t2', text: 'After translation: read one VOA article (10 min)', how: 'Try Level 3 stories now. If too hard, stay at Level 2. Comprehension > difficulty.', isPriority: false },
+                    { id: 'ew10t3', text: 'CNN 10 listening: 10 min after reading', how: 'Full routine: translation (25) → reading (10) → listening (10) = 45 min total.', isPriority: true },
+                    { id: 'ew10t4', text: 'Wed: Grammar Focus — find patterns across multiple weeks', how: 'Look at 3 weeks of error records. Which mistake type never goes away? Focus on that.', isPriority: false },
+                    { id: 'ew10t5', text: 'Sat Writing + Sun Review: maintain weekend routine', how: 'Writing day is non-negotiable. It proves whether the weekday practice is working.', isPriority: true },
+                ],
+                mistakes: [
+                    'Skipping listening because it feels hard. It is supposed to feel hard. Keep going.',
+                    'Not increasing reading difficulty over time. If Level 2 is easy, move to Level 3.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 11,
+                title: 'Week 11 — Translation + Writing Focus',
+                goal: 'Improve writing quality. Sentences should feel more natural.',
+                stage: 2,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew11t1', text: 'Translation practice: now self-check for 4 things', how: 'Verb form, verb tense, clause structure, AND natural word order. Add the 4th check.', isPriority: true },
+                    { id: 'ew11t2', text: 'Compare your translations with the VOA original more carefully', how: 'After AI correction, compare with the original article. What did the native writer do differently?', isPriority: true },
+                    { id: 'ew11t3', text: 'Wed: Grammar Focus — word order and natural phrasing', how: 'Chinese and English word order differ. Notice patterns. Write 8 sentences with natural English order.', isPriority: false },
+                    { id: 'ew11t4', text: 'Sat Writing: 200 words. Focus on natural flow between sentences', how: 'Read your essay out loud. Does it sound natural? If not, adjust.', isPriority: true },
+                    { id: 'ew11t5', text: 'Sun: Review + check: are you close to your 30-day reward?', how: 'If you hit 30 days this week or next: claim your reward. You earned it.', isPriority: true },
+                ],
+                mistakes: [
+                    'Writing Chinese-style English: "I with my friend went to store." → "I went to the store with my friend."',
+                    'Forgetting articles (a/an/the). This is hard for Chinese speakers. Keep checking.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 12,
+                title: 'Week 12 — Grammar Refinement',
+                goal: 'Clean up remaining grammar weak points.',
+                stage: 2,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew12t1', text: 'Translation practice: focus on the mistake you make most often', how: 'You know which one it is by now. Every translation, check that one thing first.', isPriority: true },
+                    { id: 'ew12t2', text: 'Re-read the grammar unit for your most stubborn mistake', how: 'Read it slowly. Write 10 sentences. Send to AI. If it still appears, read it again tomorrow.', isPriority: true },
+                    { id: 'ew12t3', text: 'Wed: Grammar Focus — articles (a/an/the) and prepositions', how: 'These are hard but important. Read the relevant units. Write 8 sentences about your room/desk.', isPriority: false },
+                    { id: 'ew12t4', text: 'Sat Writing: 200 words. Count your own errors before AI.', how: 'Goal: find 80% of your errors yourself. If you can, you are close to B2.', isPriority: true },
+                    { id: 'ew12t5', text: 'Sun: Review + Month 2 approaching — prepare for self-test next week', how: 'Month 2 self-test next week. Write a 150-word essay. No AI. Count errors yourself.', isPriority: true },
+                ],
+                mistakes: [
+                    'Ignoring articles because they feel small. But many small errors together make writing feel "off" to native readers.',
+                    'Not doing the Month 2 self-test honestly. The test is for you, not for a grade. Be honest about your level.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 13,
+                title: 'Week 13 — Month 2 Self-Test + Review',
+                goal: 'Take the Month 2 self-test. Evaluate progress.',
+                stage: 2,
+                isBuffer: true,
+                tasks: [
+                    { id: 'ew13t1', text: 'Month 2 Self-Test: 150 words, find your own errors, no AI', how: 'Compare with Month 1 test. Can you find more errors now? Is your writing more varied?', isPriority: true },
+                    { id: 'ew13t2', text: 'Review all Obsidian records from Month 2', how: 'Count: how many different mistake types appeared? Which ones are gone?', isPriority: false },
+                    { id: 'ew13t3', text: 'Catch up on any incomplete tasks from Weeks 10–12', how: '' },
+                    { id: 'ew13t4', text: 'Write a 150-word reflection: "What improved? What still needs work?"', how: 'Be specific. "My verb forms are better but I still forget articles."', isPriority: true },
+                    { id: 'ew13t5', text: 'Rest and prepare for Stage 3 — the final push to B2', how: 'Stage 3 is about refinement and exam readiness. Make sure your daily routine is solid.', isPriority: true },
+                ],
+                mistakes: [
+                    'Being too hard on yourself. If you practiced 5+ days per week for 2 months, you improved. It is impossible not to.',
+                    'Comparing to B2 standards too early. You are building toward B2. Trust the process.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 14,
+                title: 'Week 14 — Advanced Translation Practice',
+                goal: 'Push translation quality higher. Use Level 3–4 VOA stories.',
+                stage: 3,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew14t1', text: 'Translation practice: switch to Level 3 VOA stories', how: 'If Level 3 is comfortable, try Level 4. The sentences are longer and more complex.', isPriority: true },
+                    { id: 'ew14t2', text: 'Add a new self-check: "Does this sound natural in English?"', how: 'Read your translation out loud. If it sounds like Chinese translated to English, rephrase.', isPriority: true },
+                    { id: 'ew14t3', text: 'Wed: Grammar Focus — advanced clause structures', how: 'Try using: "Not only... but also", "Despite the fact that...", "The reason why..."', isPriority: false },
+                    { id: 'ew14t4', text: 'Sat Writing: 200+ words. Try a more complex topic.', how: 'Choose a topic that requires explaining cause and effect. Use "because", "therefore", "as a result".', isPriority: true },
+                    { id: 'ew14t5', text: 'Sun: Review + check your 60-day reward progress', how: 'If you hit 60 days soon: plan exactly how you will claim your reward.', isPriority: true },
+                ],
+                mistakes: [
+                    'Staying at Level 2 too long. You need challenge to grow. If Level 3 feels hard, that means it is working.',
+                    'Writing complex sentences that lose meaning. Clear > complex. Master clear first.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 15,
+                title: 'Week 15 — Writing & Self-Correction',
+                goal: 'Become your own best editor. Catch errors before AI does.',
+                stage: 3,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew15t1', text: 'Translation practice: aim to find 90% of your errors yourself', how: 'Before AI: check verb form, verb tense, clause structure, naturalness, articles. All five.', isPriority: true },
+                    { id: 'ew15t2', text: 'After AI correction: compare how many errors you found vs AI found', how: 'Track this number. If you find 80%+, you are approaching B2 self-editing skill.', isPriority: true },
+                    { id: 'ew15t3', text: 'Wed: Grammar Focus — any remaining weak point', how: 'By now you know your weak points. Spend 25 minutes drilling the hardest one.', isPriority: false },
+                    { id: 'ew15t4', text: 'Sat Writing: 200 words. Self-edit for 10 minutes before AI.', how: 'Read every sentence. Ask: "Is this correct? Does this sound natural?" Fix what you can.', isPriority: true },
+                    { id: 'ew15t5', text: 'Sun: Review + try reading an NPR article', how: 'NPR articles are B2 level. Try one. 80% understanding is success.', isPriority: true },
+                ],
+                mistakes: [
+                    'Relying too much on AI. At this stage, you should trust your own judgment more than AI.',
+                    'Not pushing reading difficulty up. Try NPR, BBC, or The Guardian. This is B2 reading level.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 16,
+                title: 'Week 16 — Integrated Practice',
+                goal: 'All skills working together. Translation, reading, listening, writing.',
+                stage: 3,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew16t1', text: 'Full daily routine: translation (25) + reading (10) + listening (10)', how: '45 minutes total. This is your complete English workout. Every weekday.', isPriority: true },
+                    { id: 'ew16t2', text: 'Notice connections: does listening help your writing sound more natural?', how: 'Pay attention. When you hear a phrase on CNN 10, try using it in your translation.', isPriority: false },
+                    { id: 'ew16t3', text: 'Wed: Grammar Focus — polish, do not learn new rules', how: 'At this stage, you know the rules. Focus on applying them consistently.', isPriority: false },
+                    { id: 'ew16t4', text: 'Sat Writing: 200+ words. Your essay should have fewer than 3 errors total.', how: 'If you can write 200 words with fewer than 3 errors, you are at B2 writing level.', isPriority: true },
+                    { id: 'ew16t5', text: 'Sun: Review + try speaking: explain your week out loud in English (5 min)', how: 'Speaking is the next frontier. Start small. Just describe what you did this week.', isPriority: true },
+                ],
+                mistakes: [
+                    'Neglecting one skill. All four (reading, writing, listening, translation) need practice.',
+                    'Not trying speaking yet. Even 5 minutes on Sunday builds confidence for real conversations.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 17,
+                title: 'Week 17 — BUFFER: Review & Polish',
+                goal: 'No new topics. Polish everything before the final push.',
+                stage: 3,
+                isBuffer: true,
+                tasks: [
+                    { id: 'ew17t1', text: 'Catch up on any incomplete tasks from Weeks 14–16', how: '' },
+                    { id: 'ew17t2', text: 'Review all grammar units you marked as difficult', how: 'Re-read them. Write 5 sentences for each. Confirm you understand.' },
+                    { id: 'ew17t3', text: 'Take a practice self-test: 200 words, no AI, find all errors', how: 'This is a preview of the final assessment. Treat it seriously.' },
+                    { id: 'ew17t4', text: 'Organize your Obsidian: clean up old logs, highlight key learnings', how: 'A clean system helps you see your journey clearly.' },
+                    { id: 'ew17t5', text: 'Rest. The final 3 weeks are intense. Enter them fresh.', how: 'Buffer weeks are strategic. Use them.' },
+                ],
+                mistakes: ['Skipping buffer week because you feel "behind." Buffer is not behind. It is maintenance.'],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 18,
+                title: 'Week 18 — Pre-Exam Preparation',
+                goal: 'Simulate ENG 1200 conditions. Write under time pressure.',
+                stage: 3,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew18t1', text: 'Translation practice with a timer: 15 min instead of 25', how: 'Speed matters for exams. Practice translating faster while keeping accuracy.', isPriority: true },
+                    { id: 'ew18t2', text: 'Timed writing: 200 words in 30 minutes. No AI. No dictionary.', how: 'This simulates exam conditions. Count errors after. Aim for fewer than 3.', isPriority: true },
+                    { id: 'ew18t3', text: 'Wed: Grammar Focus — quick error spotting drills', how: 'Take an old essay. Find 5 errors in 3 minutes. Speed matters.', isPriority: false },
+                    { id: 'ew18t4', text: 'Sat Writing: full exam simulation — 200 words, 30 min, no help', how: 'Treat this like the real test. After: self-check, then AI check.', isPriority: true },
+                    { id: 'ew18t5', text: 'Sun: Review + identify your top 3 remaining weak points', how: 'Focus the final 2 weeks on these 3 things only.', isPriority: true },
+                ],
+                mistakes: [
+                    'Panicking under time pressure. Remember: you have practiced for 18 weeks. Trust your training.',
+                    'Changing your writing style for the exam. Write the way you practiced. Consistency wins.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 19,
+                title: 'Week 19 — Mock Tests & Final Review',
+                goal: 'Take full mock tests. Close remaining gaps.',
+                stage: 3,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew19t1', text: 'Two timed essays this week: 200 words, 30 min each', how: 'Monday and Thursday. Different topics. Self-check both before AI.', isPriority: true },
+                    { id: 'ew19t2', text: 'Translation practice: Level 4 VOA stories, 15 min each', how: 'If Level 4 is comfortable, you are ready for B2 reading and writing.', isPriority: true },
+                    { id: 'ew19t3', text: 'Wed: Final grammar drill — your #1 remaining mistake', how: 'Whatever it is, spend 25 minutes on it. This is the last focused grammar session.', isPriority: false },
+                    { id: 'ew19t4', text: 'Review all self-tests from Months 1, 2, and Week 18', how: 'Compare them side by side. The improvement should be visible. This is your proof.', isPriority: true },
+                    { id: 'ew19t5', text: 'Sun: Light review + rest before the final week', how: 'Do not cram. Trust the 19 weeks of work. Rest is part of preparation.', isPriority: true },
+                ],
+                mistakes: [
+                    'Cramming new grammar rules in the final week. Too late. Polish what you know.',
+                    'Staying up late to study. Sleep is more important than one more practice session.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }, {
+                id: 20,
+                title: 'Week 20 — Final Assessment & Next Steps',
+                goal: 'Take the final self-test. Plan your next level.',
+                stage: 3,
+                isBuffer: false,
+                tasks: [
+                    { id: 'ew20t1', text: 'Final Self-Test: 200 words, 30 min, no AI, find all errors', how: 'Compare with Month 1 test. Count: how many fewer errors? How much more varied?', isPriority: true },
+                    { id: 'ew20t2', text: 'Write a final reflection: "My English journey — B1 to B2"', how: '200 words. Describe what changed. This is also good writing practice.', isPriority: true },
+                    { id: 'ew20t3', text: 'Review all 20 weeks of Obsidian records', how: 'Look at Week 1. Look at Week 20. You did this. Every day added up.', isPriority: false },
+                    { id: 'ew20t4', text: 'Claim your 60-day reward if you earned it', how: 'You kept your promise. Now keep the reward promise to yourself.', isPriority: true },
+                    { id: 'ew20t5', text: 'Plan your next goal: B2+ speaking? IELTS? Native-level writing?', how: 'You built the habit. Now decide where to aim it next. The system works for any language goal.', isPriority: true },
+                ],
+                mistakes: [
+                    'Stopping completely after reaching B2. Language fades without use. Plan a maintenance routine (2–3 days/week).',
+                    'Forgetting to celebrate. 20 weeks of daily practice is a real achievement. Be proud.',
+                ],
+                reviewQuestions: [
+                    'What was my most common mistake this week?',
+                    'Did any mistake type appear less than last week?',
+                    'What is the one thing I need to be most careful about next week?',
+                ],
+                identityStatement: 'I am a person who practices English every day.',
+            }];
+
+            // ──────────────────────────────────────────────
+            // This is the end of Part 2.
+            // The file continues with state management and logic.
+            // ──────────────────────────────────────────────
+            <!-- PART 3 / 3 -->
+            // ──────────────────────────────────────────────
+            // STATE
+            // ──────────────────────────────────────────────
+            function getStorageKeys() {
+                const p = getStoragePrefix();
+                return {
+                    tasks: p + '_tasks',
+                    streak: p + '_streak',
+                    commitment: p + '_commitment',
+                    currentWeek: p + '_currentWeek',
+                    lastUpdated: p + '_lastUpdated',
+                    completedDates: p + '_completedDates',
+                    rewards: p + '_rewards',
+                };
+            }
+
+            // ──────────────────────────────────────────────
+            // TECH ENGLISH WEEKS DATA
+            // ──────────────────────────────────────────────
+            
+
+function generateTechVocabData() {
+  var g=[{"w":"inheritance","pron":"in-HER-it-ance","sounds":"in her it ance"},{"w":"exception","pron":"ex-SEP-shun","sounds":"ex sep shun"},{"w":"interface","pron":"IN-ter-face","sounds":"in ter face"},{"w":"polymorphism","pron":"pol-ee-MOR-fiz-um","sounds":"poly more fizz um"},{"w":"encapsulation","pron":"en-kap-sue-LAY-shun","sounds":"en cap sue lay shun"},{"w":"assertion","pron":"a-SER-shun","sounds":"a sir shun"},{"w":"repository","pron":"re-POZ-it-or-ee","sounds":"re poz it or ee"},{"w":"algorithm","pron":"AL-go-rith-um","sounds":"al go rith um"},{"w":"automation","pron":"aw-toe-MAY-shun","sounds":"aw toe may shun"},{"w":"framework","pron":"FRAME-work","sounds":"frame work"},{"w":"parameter","pron":"pa-RAM-et-er","sounds":"pa ram et er"},{"w":"dependency","pron":"de-PEN-den-see","sounds":"de pen den see"}];
+  return [
+    {id:1,title:"Week 1 — OOP Vocabulary",goal:"Learn core OOP: class, object, inheritance, interface, polymorphism.",stage:1,isBuffer:false,special:"vocab",vocab:[{w:"class",pron:"",def:"A template/blueprint for creating objects.",code:"public class Dog { }",iv:"I structured my project using multiple classes."},{w:"object",pron:"",def:"A real thing created from a class.",code:"Dog rex = new Dog('Rex');",iv:"Each test creates a new WebDriver object."},{w:"constructor",pron:"",def:"Runs when creating an object. Sets it up.",code:"public Dog(String n){this.name=n;}",iv:"The BasePage constructor takes a WebDriver."},{w:"inheritance",pron:"",def:"One class gets methods/fields from another.",code:"public class Dog extends Animal{}",iv:"LoginPage extends BasePage to inherit wait methods."},{w:"interface",pron:"",def:"A contract declaring required methods.",code:"interface Shape{double area();}",iv:"I used ITestListener for screenshots."},{w:"polymorphism",pron:"",def:"One name, many forms.",code:"",iv:"Polymorphism lets me call methods on different pages."},{w:"encapsulation",pron:"",def:"Hide internal details.",code:"private String name;",iv:"I hid WebDriver inside BasePage."},{w:"access modifier",pron:"",def:"Controls visibility: public, private, protected.",code:"",iv:"Locators are private."},{w:"override",pron:"",def:"Rewrite parent method. Use @Override.",code:"@Override void sound(){}",iv:"I override onTestFailure for screenshots."},{w:"instance",pron:"",def:"One specific object from a class.",code:"WebDriver d=new ChromeDriver();",iv:"Each thread gets its own WebDriver instance."}]},
+    {id:2,title:"Week 2 — Collections + Exceptions",goal:"Learn collections and exception vocabulary.",stage:1,isBuffer:false,special:"vocab",vocab:[{w:"collection",pron:"",def:"A group of objects stored together. List, Map, Set.",code:"",iv:"I used a HashMap for test data."},{w:"List",pron:"",def:"Ordered, allows duplicates. Index access.",code:"List<String> n=new ArrayList<>();",iv:"I stored names in a List and looped."},{w:"Map",pron:"",def:"Key-value pairs. Look up by key.",code:"Map<String,Integer> g=new HashMap<>();",iv:"I mapped user names to roles."},{w:"Set",pron:"",def:"No duplicates. Existence checking.",code:"Set<String> s=new HashSet<>();",iv:"I used a HashSet to track run IDs."},{w:"iterate",pron:"",def:"Go through items one at a time.",code:"for(String n:names){}",iv:"I iterate test data one row per case."},{w:"exception",pron:"",def:"A runtime error.",code:"",iv:"I handle StaleElement by re-finding."},{w:"try-catch",pron:"",def:"Try code, catch errors.",code:"try{}catch(Exception e){}",iv:"I wrap WebDriver in try-catch."},{w:"throw",pron:"",def:"Send exception to caller.",code:"throw new IllegalArgumentException();",iv:"I throw when config is missing."}]},
+    {id:3,title:"Week 3 — Test Design",goal:"Learn test terminology: cases, assertions, coverage.",stage:1,isBuffer:false,special:"vocab",vocab:[{w:"test case",pron:"",def:"Input, action, expected result.",code:"",iv:"I write normal, edge, negative cases."},{w:"happy path",pron:"",def:"Normal usage, valid input.",code:"",iv:"Happy path confirms main flow."},{w:"edge case",pron:"",def:"Testing boundary values.",code:"",iv:"I test max length and zero."},{w:"negative case",pron:"",def:"Wrong input handled gracefully.",code:"",iv:"Negative tests verify 400."},{w:"assertion",pron:"",def:"Check: if false, test fails.",code:"assertEquals(200,code);",iv:"Every test has an assertion."},{w:"coverage",pron:"",def:"How much code tests check.",code:"",iv:"I cover all scenarios."},{w:"debugging",pron:"",def:"Finding and fixing problems.",code:"",iv:"Read error, check latest change."}]},
+    {id:4,title:"Week 4 — Pronunciation Guide",goal:"Review pronunciation guide table.",stage:1,isBuffer:false,special:"pronunciation",pronunciationData:g,tasks:[{id:"tew4t1",text:"Review pronunciation table",how:"Read each word aloud."},{id:"tew4t2",text:"Record all 12 words",how:"Compare to guide."},{id:"tew4t3",text:"Pick 5 hardest, repeat 10x",how:""},{id:"tew4t4",text:"Use each in a sentence",how:"Record if possible."},{id:"tew4t5",text:"Review weeks 1-3",how:""}]},
+    {id:5,title:"Week 5 — Maven + Git",goal:"Learn build tool and Git terminology.",stage:1,isBuffer:false,special:"vocab",vocab:[{w:"Maven",pron:"",def:"Manages structure and deps.",code:"mvn test",iv:"I use Maven for deps."},{w:"dependency",pron:"",def:"Library in pom.xml.",code:"",iv:"Deps go in pom.xml."},{w:"pom.xml",pron:"",def:"Project config.",code:"",iv:"I configure everything in pom.xml."},{w:"repository",pron:"",def:"GitHub/Maven storage.",code:"",iv:"Code on public GitHub."},{w:"commit",pron:"",def:"Save a snapshot with message.",code:"git commit -m 'feat:'",iv:"I commit after each change."},{w:"branch",pron:"",def:"Separate dev line.",code:"git checkout -b feat/x",iv:"I use feature branches."},{w:"merge",pron:"",def:"Combine branches.",code:"",iv:"I merge via PR."},{w:"pull request",pron:"",def:"Code review request.",code:"",iv:"I create PRs for review."},{w:"merge conflict",pron:"",def:"Two changed same line.",code:"",iv:"I compare both versions."}]},
+    {id:6,title:"Week 6 — JUnit 5",goal:"Master unit testing: annotations, TDD.",stage:1,isBuffer:false,special:"vocab",vocab:[{w:"unit test",pron:"",def:"Tests one method in isolation.",code:"",iv:"Unit tests for every method."},{w:"test suite",pron:"",def:"Group of tests.",code:"",iv:"Smoke and regression suites."},{w:"annotation",pron:"",def:"@ label for compiler.",code:"@Test @BeforeEach",iv:"I use @BeforeEach for data."},{w:"parameterized test",pron:"",def:"One test, many data.",code:"@ParameterizedTest @CsvSource",iv:"5 credentials, one test."},{w:"TDD",pron:"",def:"Test before code.",code:"",iv:"Tests first, impl second."}]},
+    {id:7,title:"Week 7 — HTTP + API",goal:"Learn REST API terminology.",stage:2,isBuffer:false,special:"vocab",vocab:[{w:"API",pron:"",def:"Programs talk via requests.",code:"",iv:"I automated API tests."},{w:"REST",pron:"",def:"API design style.",code:"",iv:"API follows REST conventions."},{w:"HTTP method",pron:"",def:"GET POST PUT PATCH DELETE.",code:"",iv:"I test all 5 methods."},{w:"status code",pron:"",def:"200=OK 400=Bad 401=Unauth 403=Forbid 404=NotFound 500=Error",code:"",iv:"I assert on status and body."},{w:"endpoint",pron:"",def:"URL of one API action.",code:"",iv:"I test every endpoint."},{w:"request",pron:"",def:"Sent: URL method headers body.",code:"",iv:"given() builds, when() sends."},{w:"response",pron:"",def:"What API sends back.",code:"",iv:"I parse the JSON response."},{w:"JSON",pron:"",def:"Key-value format.",code:"{'name':'Alice'}",iv:"I validate JSON fields."},{w:"authentication",pron:"",def:"Proving identity. 401 vs 403.",code:"",iv:"Auth and unauth requests."}]},
+    {id:8,title:"Week 8 — Selenium + WebDriver",goal:"Learn Selenium: locators, waits.",stage:2,isBuffer:false,special:"vocab",vocab:[{w:"Selenium",pron:"",def:"Browser automation.",code:"",iv:"I use Selenium for E2E."},{w:"WebDriver",pron:"",def:"Controls the browser.",code:"WebDriver d=new ChromeDriver();",iv:"WebDriver in a factory class."},{w:"locator",pron:"",def:"Find page element.",code:"By.id() By.css() By.xpath()",iv:"I prefer CSS selectors."},{w:"explicit wait",pron:"",def:"Wait for condition.",code:"WebDriverWait w=new WebDriverWait(d,10);",iv:"Always use explicit waits."},{w:"implicit wait",pron:"",def:"Global timeout on findElement.",code:"",iv:"I avoid implicit waits."},{w:"POM",pron:"",def:"Page Object Model.",code:"",iv:"POM separates page from test logic."}]},
+    {id:9,title:"Week 9 — BUFFER",goal:"Review weeks 5-8.",stage:2,isBuffer:true,special:"vocab",vocab:[{w:"buffer week",pron:"",def:"Scheduled review. Catch up or rest.",code:"",iv:"Consolidate during buffer."}]},
+    {id:10,title:"Week 10 — POM Advanced",goal:"BasePage, parallel, ThreadLocal.",stage:2,isBuffer:false,special:"vocab",vocab:[{w:"BasePage",pron:"",def:"Parent for all page classes.",code:"",iv:"Pages extend BasePage."},{w:"parallel execution",pron:"",def:"Tests run simultaneously.",code:"",iv:"TestNG parallel=3."},{w:"ThreadLocal",pron:"",def:"Per-thread value storage.",code:"ThreadLocal<WebDriver> t=new ThreadLocal<>();",iv:"Thread safety for parallel."}]},
+    {id:11,title:"Week 11 — TestNG",goal:"Groups, smoke, regression.",stage:2,isBuffer:false,special:"vocab",vocab:[{w:"TestNG",pron:"",def:"Framework with suites and groups.",code:"testng.xml",iv:"TestNG for grouping."},{w:"smoke test",pron:"",def:"Fast basic check.",code:"",iv:"Smoke runs first, fails fast."},{w:"regression",pron:"",def:"Old features break.",code:"",iv:"Regression on every PR."},{w:"data-driven",pron:"",def:"One test, different data.",code:"",iv:"Change data, not code."}]},
+    {id:12,title:"Week 12 — RestAssured",goal:"API tests: RestAssured, JsonPath.",stage:2,isBuffer:false,special:"vocab",vocab:[{w:"RestAssured",pron:"",def:"API test assertion library.",code:"given().when().then().statusCode(201)",iv:"given-when-then API tests."},{w:"JsonPath",pron:"",def:"Navigate JSON structures.",code:"jsonPath().getString('user.email')",iv:"Extract fields with JsonPath."},{w:"POJO",pron:"",def:"Java class with getters/setters.",code:"class User{private String name;}",iv:"POJOs serialize to JSON."},{w:"serialization",pron:"",def:"Java to JSON and back.",code:"",iv:"Jackson for serialization."}]},
+    {id:13,title:"Week 13 — API Framework Review",goal:"Consolidate Stage 2.",stage:2,isBuffer:false,special:"vocab",vocab:[{w:"framework",pron:"",def:"Structured code for tests.",code:"",iv:"Separate layers for each concern."},{w:"maintainability",pron:"",def:"Easy to change/update.",code:"",iv:"POM + config improves it."},{w:"scalability",pron:"",def:"Handles growth.",code:"",iv:"Add tests without breaking."}]},
+    {id:14,title:"Week 14 — BUFFER",goal:"Review Stage 2.",stage:2,isBuffer:true,special:"vocab",vocab:[{w:"review",pron:"",def:"Consolidate knowledge.",code:"",iv:"Practice explaining concepts."}]},
+    {id:15,title:"Week 15 — BDD + Cucumber",goal:"Gherkin, feature files, step defs.",stage:3,isBuffer:false,special:"vocab",vocab:[{w:"BDD",pron:"",def:"Business-readable scenarios.",code:"",iv:"Readable by non-tech."},{w:"Gherkin",pron:"",def:"Given-When-Then language.",code:"Feature: Login\\nScenario: Valid login",iv:"Gherkin in .feature files."},{w:"feature file",pron:"",def:".feature with scenarios.",code:"login.feature",iv:"One story per feature file."},{w:"step definition",pron:"",def:"Java connecting Gherkin to code.",code:"@When('click') void click(){}",iv:"Step defs call POM methods."},{w:"Cucumber",pron:"",def:"BDD framework.",code:"",iv:"Cucumber runs Gherkin scenarios."}]},
+    {id:16,title:"Week 16 — CI/CD",goal:"Pipelines, GitHub Actions.",stage:3,isBuffer:false,special:"vocab",vocab:[{w:"CI/CD",pron:"",def:"Auto build+test on push.",code:"",iv:"CI runs on every push."},{w:"pipeline",pron:"",def:"Steps: checkout build test report.",code:"",iv:"Pipeline uploads reports."},{w:"GitHub Actions",pron:"",def:"CI/CD on GitHub.",code:"",iv:"Actions runs on push."},{w:"artifact",pron:"",def:"CI output file.",code:"",iv:"Reports as artifacts."},{w:"headless",pron:"",def:"Browser without window.",code:"--headless",iv:"Headless in CI."}]},
+    {id:17,title:"Week 17 — Capstone Pt 1",goal:"Portfolio and planning.",stage:3,isBuffer:false,special:"vocab",vocab:[{w:"E2E test",pron:"",def:"Full user journey.",code:"",iv:"Simulate real journeys."},{w:"defect",pron:"",def:"Software bug.",code:"",iv:"Caught checkout defect."},{w:"root cause",pron:"",def:"Real reason for failure.",code:"",iv:"Find root cause first."},{w:"flaky test",pron:"",def:"Passes/fails randomly.",code:"",iv:"Fixed by removing Thread.sleep."},{w:"sprint",pron:"",def:"2-week Agile cycle.",code:"",iv:"Plan tasks by sprint."}]},
+    {id:18,title:"Week 18 — Capstone Pt 2",goal:"Interview vocabulary.",stage:3,isBuffer:false,special:"vocab",vocab:[{w:"portfolio",pron:"",def:"Projects showing your skills.",code:"",iv:"3 automation projects."},{w:"SDET",pron:"",def:"Engineer who tests with code.",code:"",iv:"Build test infrastructure."},{w:"architecture",pron:"",def:"How system parts connect.",code:"",iv:"Clean separation of concerns."}]},
+    {id:19,title:"Week 19 — Interview Templates",goal:"Practice responses aloud.",stage:3,isBuffer:false,special:"templates",tasks:[{id:"tew19t1",text:"Describe your project",how:"I built a framework using Selenium/RestAssured."},{id:"tew19t2",text:"Explain a decision",how:"I chose TestNG for grouping and parallel."},{id:"tew19t3",text:"Handle a problem",how:"When StaleElement occurs I re-find."},{id:"tew19t4",text:"Test design",how:"Three types: normal, edge, negative."},{id:"tew19t5",text:"Debugging",how:"Read error, check latest change."}]},
+    {id:20,title:"Week 20 — Quick Reference",goal:"Review all key terms.",stage:3,isBuffer:false,special:"cheatsheet",tasks:[{id:"tew20t1",text:"Review all terms",how:""},{id:"tew20t2",text:"Self-test from memory",how:""},{id:"tew20t3",text:"Focus on 5 weakest",how:""},{id:"tew20t4",text:"Explain each in 1 sentence",how:""},{id:"tew20t5",text:"Record 2-min answer",how:""}]}
+  ];
+}
+            const techWeeksData = generateTechVocabData();
+
+            const WEEKS_MAP = {
+                sdet: sdetWeeksData,
+                eng: engWeeksData,
+                tech: techWeeksData,
+            };
+
+            function getWeeksData() { return WEEKS_MAP[activeTracker]; }
+
+            let currentWeekIndex = 0;
+            let taskStates = {};
+            let streak = 0;
+            let commitment = { time: '', location: '' };
+            let completedDates = {};
+            let rewards = { r30: '', r60: '' };
+            let syncTimer = null;
+            let currentUser = null;
+
+            function getTodayKey() {
+                const d = new Date();
+                return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            }
+
+            function saveLocal() {
+                const keys = getStorageKeys();
+                localStorage.setItem(keys.tasks, JSON.stringify(taskStates));
+                localStorage.setItem(keys.streak, String(streak));
+                localStorage.setItem(keys.commitment, JSON.stringify(commitment));
+                localStorage.setItem(keys.currentWeek, String(currentWeekIndex));
+                localStorage.setItem(keys.completedDates, JSON.stringify(completedDates));
+                localStorage.setItem(keys.lastUpdated, new Date().toISOString());
+                localStorage.setItem(keys.rewards, JSON.stringify(rewards));
+                localStorage.setItem('current_tracker', activeTracker);
+            }
+
+            function loadLocal() {
+                const keys = getStorageKeys();
+                try { const ts = JSON.parse(localStorage.getItem(keys.tasks) || '{}'); if (typeof ts === 'object' && ts !== null) taskStates = ts; } catch (e) { taskStates = {}; }
+                try { streak = parseInt(localStorage.getItem(keys.streak) || '0') || 0; } catch (e) { streak = 0; }
+                try { const c = JSON.parse(localStorage.getItem(keys.commitment) || '{}'); if (c && typeof c === 'object') commitment = { time: c.time || '', location: c.location || '' }; } catch (e) { commitment = { time: '', location: '' }; }
+                try { currentWeekIndex = parseInt(localStorage.getItem(keys.currentWeek) || '0') || 0; } catch (e) { currentWeekIndex = 0; }
+                try { const cd = JSON.parse(localStorage.getItem(keys.completedDates) || '{}'); if (cd && typeof cd === 'object') completedDates = cd; } catch (e) { completedDates = {}; }
+                try { const r = JSON.parse(localStorage.getItem(keys.rewards) || '{}'); if (r && typeof r === 'object') rewards = { r30: r.r30 || '', r60: r.r60 || '' }; } catch (e) { rewards = { r30: '', r60: '' }; }
+                if (currentWeekIndex < 0 || currentWeekIndex >= getWeeksData().length) currentWeekIndex = 0;
+            }
+
+            function getWeekData() { return getWeeksData()[currentWeekIndex]; }
+            function isWeekComplete() { const wd = getWeekData(); return wd.tasks.every(t => taskStates[t.id]); }
+            function calcWeekProgress() {
+                const wd = getWeekData();
+                const done = wd.tasks.filter(t => taskStates[t.id]).length;
+                return { done, total: wd.tasks.length, pct: wd.tasks.length > 0 ? Math.round((done / wd.tasks.length) * 100) : 0 };
+            }
+            function calcTotalProgress() {
+                let totalDone = 0, totalAll = 0;
+                getWeeksData().forEach(w => { w.tasks.forEach(t => { totalAll++; if (taskStates[t.id]) totalDone++; }); });
+                return { done: totalDone, total: totalAll, pct: totalAll > 0 ? Math.round((totalDone / totalAll) * 100) : 0 };
+            }
+            function getCurrentMilestone() {
+                const wp = calcTotalProgress();
+                let stage = 1;
+                if (currentWeekIndex >= 6 && currentWeekIndex < 13) stage = 2;
+                if (currentWeekIndex >= 13) stage = 3;
+                let stageEnd = 6;
+                if (stage === 2) stageEnd = 13;
+                if (stage === 3) stageEnd = 20;
+                const weeksToStageEnd = Math.max(0, stageEnd - (currentWeekIndex + 1));
+                const cfg = getConfig();
+                const stageName = cfg.stageNames[stage] || ('Stage ' + stage);
+                return { stage, stageEnd, weeksToStageEnd, pct: wp.pct, stageName };
+            }
+
+            function updateStreak() {
+                const today = getTodayKey();
+                if (completedDates[today]) return;
+                const wd = getWeekData();
+                const anyDoneToday = wd.tasks.some(t => taskStates[t.id]);
+                if (anyDoneToday) {
+                    completedDates[today] = true;
+                    let newStreak = 1;
+                    const d = new Date();
+                    for (let i = 1; i <= 365; i++) {
+                        d.setDate(d.getDate() - 1);
+                        const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                        if (completedDates[key]) newStreak++;
+                        else break;
+                    }
+                    const oldStreak = streak;
+                    streak = newStreak;
+                    saveLocal();
+                    if (streak > oldStreak) animateStreak();
+                    if (activeTracker === 'eng') checkRewardMilestones();
+                }
+            }
+
+            function animateStreak() {
+                const badge = document.getElementById('streakBadge');
+                badge.classList.remove('pop');
+                void badge.offsetWidth;
+                badge.classList.add('pop');
+                document.getElementById('streakCount').textContent = streak;
+            }
+
+            function checkRewardMilestones() {
+                if (streak === 30 && rewards.r30) {
+                    showToast('🎉 30-day streak! Claim your reward: ' + rewards.r30, 'success');
+                }
+                if (streak === 60 && rewards.r60) {
+                    showToast('🏆 60-day streak! Claim your reward: ' + rewards.r60, 'success');
+                }
+            }
+
+            function showToast(message, type = 'info') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = 'toast toast--' + type;
+                toast.textContent = message;
+                container.appendChild(toast);
+                document.getElementById('srAnnouncer').textContent = message;
+                setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3500);
+            }
+
+            function announceToSR(message) {
+                document.getElementById('srAnnouncer').textContent = message;
+            }
+
+            function updateWeekStatus() {
+                if (activeTracker === 'tech') {
+                    document.getElementById('weekStatus').textContent = 'Vocab mode';
+                    document.getElementById('weekStatus').className = 'status-label status-label--in-progress';
+                    return;
+                }
+                const wp = calcWeekProgress();
+                const statusEl = document.getElementById('weekStatus');
+                statusEl.classList.remove('status-label--not-started', 'status-label--in-progress', 'status-label--completed');
+                if (wp.pct === 0) {
+                    statusEl.classList.add('status-label--not-started');
+                    statusEl.textContent = 'Not started';
+                } else if (wp.pct === 100) {
+                    statusEl.classList.add('status-label--completed');
+                    statusEl.textContent = 'Completed ✓';
+                } else {
+                    statusEl.classList.add('status-label--in-progress');
+                    statusEl.textContent = 'In progress';
+                }
+            }
+
+            function renderWeekTabs() {
+                const container = document.getElementById('weekTabs');
+                container.innerHTML = '';
+                const data = getWeeksData();
+                data.forEach((w, i) => {
+                    const tab = document.createElement('button');
+                    tab.className = 'week-tab';
+                    if (i === currentWeekIndex) tab.classList.add('week-tab--active');
+                    if (w.isBuffer) tab.classList.add('week-tab--buffer');
+                    tab.textContent = w.isBuffer ? 'W' + w.id + ' ⏸' : 'W' + w.id;
+                    tab.setAttribute('role', 'tab');
+                    tab.setAttribute('aria-selected', i === currentWeekIndex ? 'true' : 'false');
+                    tab.addEventListener('click', () => {
+                        currentWeekIndex = i;
+                        saveLocal();
+                        renderAll();
+                    });
+                    container.appendChild(tab);
+                });
+                container.scrollLeft = Math.max(0, (currentWeekIndex - 2) * 60);
+            }
+
+            function renderTasks() {
+                if (activeTracker === 'tech') { renderTechTasks(); return; }
+                const wd = getWeekData();
+                document.getElementById('weekTitle').textContent = wd.title;
+                document.getElementById('weekGoal').textContent = wd.goal;
+                const cfg = getConfig();
+                const si = document.getElementById('stageIndicator');
+                si.textContent = cfg.stageNames[wd.stage] || ('Stage ' + wd.stage);
+                si.className = 'stage-indicator stage-indicator--' + wd.stage;
+                const list = document.getElementById('taskList');
+                list.innerHTML = '';
+                wd.tasks.forEach((t, idx) => {
+                    const li = document.createElement('li');
+                    li.className = 'task-item';
+                    if (t.isPriority && idx < 3) li.classList.add('task-item--priority');
+                    li.setAttribute('role', 'checkbox');
+                    li.setAttribute('aria-checked', taskStates[t.id] ? 'true' : 'false');
+                    li.tabIndex = 0;
+                    const cb = document.createElement('div');
+                    cb.className = 'task-checkbox' + (taskStates[t.id] ? ' checked' : '');
+                    cb.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+                    const textDiv = document.createElement('div');
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'task-text' + (taskStates[t.id] ? ' done' : '');
+                    textSpan.textContent = t.text;
+                    if (t.isPriority) {
+                        const badge = document.createElement('span');
+                        badge.className = 'task-badge task-badge--must';
+                        badge.textContent = 'must';
+                        textSpan.appendChild(badge);
+                    }
+                    textDiv.appendChild(textSpan);
+                    if (t.how) {
+                        const howSpan = document.createElement('div');
+                        howSpan.className = 'task-how';
+                        howSpan.textContent = '🔹 ' + t.how;
+                        textDiv.appendChild(howSpan);
+                    }
+                    li.appendChild(cb);
+                    li.appendChild(textDiv);
+                    li.addEventListener('click', () => toggleTask(t.id, li, cb, textSpan));
+                    li.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTask(t.id, li, cb, textSpan); } });
+                    list.appendChild(li);
+                });
+                updateProgressUI();
+                updateWeekStatus();
+                if (activeTracker !== 'tech') {
+                    document.getElementById('techSearchInput').style.display = 'none';
+                    document.querySelectorAll('#resetTodayBtn,#resetWeekBtn,#resetAllBtn').forEach(b => b.style.display = '');
+                }
+                renderMistakes();
+            }
+
+            function toggleTask(taskId, li, cb, textSpan) {
+                taskStates[taskId] = !taskStates[taskId];
+                if (taskStates[taskId]) {
+                    cb.classList.add('checked');
+                    textSpan.classList.add('done');
+                } else {
+                    cb.classList.remove('checked');
+                    textSpan.classList.remove('done');
+                }
+                li.setAttribute('aria-checked', taskStates[taskId] ? 'true' : 'false');
+                updateStreak();
+                updateProgressUI();
+                updateWeekStatus();
+                saveLocal();
+                scheduleSync();
+                if (isWeekComplete()) {
+                    const weekCard = document.getElementById('weekCard');
+                    weekCard.classList.remove('card--week-complete');
+                    void weekCard.offsetWidth;
+                    weekCard.classList.add('card--week-complete');
+                    showToast('🎉 Week ' + getWeekData().id + ' completed! Great work!', 'success');
+                }
+            }
+
+            function updateProgressUI() {
+                const wp = calcWeekProgress();
+                document.getElementById('weekProgressText').textContent = wp.done + '/' + wp.total + ' tasks';
+                document.getElementById('weekProgressBar').style.width = wp.pct + '%';
+                document.getElementById('streakCount').textContent = streak;
+                updateMilestoneRing();
+            }
+
+            function updateMilestoneRing() {
+                const ms = getCurrentMilestone();
+                const ring = document.getElementById('ringCircle');
+                const circumference = 138.23;
+                const offset = circumference - (ms.pct / 100) * circumference;
+                ring.style.strokeDashoffset = offset;
+                document.getElementById('ringLabel').textContent = ms.pct + '%';
+                const cfg = getConfig();
+                let milestoneText = ms.weeksToStageEnd + ' ' + cfg.milestoneLabel;
+                if (cfg.milestoneLabel.includes('B2')) {
+                    milestoneText = ms.weeksToStageEnd + ' weeks to B2';
+                }
+                document.getElementById('milestoneText').textContent = milestoneText;
+                let subtext = cfg.milestoneSubtext.replace('{stage}', ms.stage).replace('{stageName}', ms.stageName);
+                document.getElementById('milestoneSubtext').textContent = 'Overall: ' + ms.pct + '% complete · ' + subtext;
+            }
+
+            function renderMistakes() {
+                const wd = getWeekData();
+                const body = document.getElementById('mistakesBody');
+                let html = '';
+                if (wd.mistakes && wd.mistakes.length > 0) {
+                    html += '<h4 style="margin-bottom:6px;">⚠️ Common Mistakes This Week</h4>';
+                    html += '<ul style="padding-left:18px;line-height:1.7;margin-bottom:16px;">' + wd.mistakes.map(m => '<li style="margin-bottom:4px;font-size:var(--font-sm);">' + m + '</li>').join('') + '</ul>';
+                }
+                if (wd.reviewQuestions && wd.reviewQuestions.length > 0) {
+                    html += '<h4 style="margin-bottom:6px;">📝 Weekly Review Questions</h4>';
+                    html += '<ol style="padding-left:18px;line-height:1.7;font-size:var(--font-sm);">';
+                    wd.reviewQuestions.forEach(q => { html += '<li>' + q + '</li>'; });
+                    html += '</ol>';
+                }
+                if (wd.identityStatement) {
+                    html += '<p style="margin-top:8px;font-size:var(--font-sm);color:var(--purple-dark);font-weight:500;">✍️ Identity statement: <em>"' + wd.identityStatement + '"</em></p>';
+                }
+                if (html === '') {
+                    html = '<p style="color:var(--text-muted);">Select a week to see common mistakes and review prompts.</p>';
+                }
+                body.innerHTML = html;
+            }
+
+            function renderCalendar() {
+                const grid = document.getElementById('calendarGrid');
+                grid.innerHTML = '';
+                ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(d => {
+                    const dh = document.createElement('div');
+                    dh.className = 'calendar-day-header';
+                    dh.textContent = d;
+                    grid.appendChild(dh);
+                });
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const todayKey = getTodayKey();
+                const todayNum = now.getDate();
+                for (let i = 0; i < firstDay; i++) {
+                    const empty = document.createElement('div');
+                    empty.className = 'calendar-day calendar-day--other';
+                    grid.appendChild(empty);
+                }
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'calendar-day';
+                    if (d === todayNum) dayEl.classList.add('calendar-day--today');
+                    if (completedDates[key]) dayEl.classList.add('calendar-day--completed');
+                    dayEl.textContent = d;
+                    grid.appendChild(dayEl);
+                }
+            }
+
+            function renderCommitment() {
+                const cfg = getConfig();
+                document.getElementById('commitTime').placeholder = cfg.commitPlaceholderTime;
+                document.getElementById('commitLocation').placeholder = cfg.commitPlaceholderLocation;
+                document.getElementById('commitTime').value = commitment.time || '';
+                document.getElementById('commitLocation').value = commitment.location || '';
+                const commitSubtitle = document.getElementById('commitSubtitle');
+                if (cfg.commitSubtitle) {
+                    commitSubtitle.textContent = cfg.commitSubtitle;
+                    commitSubtitle.style.display = '';
+                } else {
+                    commitSubtitle.style.display = 'none';
+                }
+                document.getElementById('commitDisplay').textContent = (commitment.time || commitment.location) ? '📌 Every day at ' + (commitment.time || '___') + ', at ' + (commitment.location || '___') + ', I will start my practice.' : '';
+                if (cfg.hasRewards) {
+                    document.getElementById('reward30Input').value = rewards.r30 || '';
+                    document.getElementById('reward60Input').value = rewards.r60 || '';
+                    document.getElementById('reward30').textContent = rewards.r30 || '(not set yet)';
+                    document.getElementById('reward60').textContent = rewards.r60 || '(not set yet)';
+                }
+                updateTrackerSpecificUI();
+            }
+
+            function updateTrackerSpecificUI() {
+                const cfg = getConfig();
+                document.querySelectorAll('.tracker-specific').forEach(el => {
+                    if (
+                        (el.id === 'neverMissNote' && !cfg.hasNeverMissNote) ||
+                        (el.id === 'rewardSection' && !cfg.hasRewards) ||
+                        (el.id === 'rewardInputsSection' && !cfg.hasRewards) ||
+                        (el.id === 'copyPromptSection' && !cfg.hasCopyPrompt) ||
+                        (el.id === 'promptBox' && !cfg.hasCopyPrompt)
+                    ) {
+                        el.style.display = 'none';
+                    } else {
+                        el.style.display = '';
+                    }
+                });
+            }
+
+            function setSyncState(state) {
+                const badge = document.getElementById('syncBadge');
+                badge.className = 'sync-badge sync-badge--' + state;
+                const labels = { synced: '✅ Synced', syncing: '🔄 Syncing...', failed: '❌ Sync Failed', offline: '⚫ Offline' };
+                badge.textContent = labels[state] || '⚫ Offline';
+            }
+
+            function renderAll() {
+                const cfg = getConfig();
+                document.getElementById('logoText').innerHTML = cfg.logoHTML;
+                document.title = cfg.name + ' — Learning Tracker';
+                updateTrackerSpecificUI();
+                renderWeekTabs();
+                renderTasks();
+                renderCalendar();
+                renderCommitment();
+                if (!currentUser) setSyncState('offline');
+                renderUserInfo();
+                updateMilestoneRing();
+                updateWeekStatus();
+                document.getElementById('streakCount').textContent = streak;
+            }
+
+            function renderUserInfo() {
+                const info = document.getElementById('userInfo');
+                const loginBtn = document.getElementById('loginBtn');
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (currentUser) {
+                    info.innerHTML = currentUser.photoURL ? '<img src="' + currentUser.photoURL + '" class="user-avatar" alt="User avatar"> ' + (currentUser.displayName || 'User') : '👤 ' + (currentUser.displayName || 'User');
+                    loginBtn.style.display = 'none';
+                    logoutBtn.style.display = '';
+                } else {
+                    info.innerHTML = '';
+                    loginBtn.style.display = '';
+                    logoutBtn.style.display = 'none';
+                }
+            }
+
+            // ─── COUNTDOWN ──────────────────────────────────
+            let countdownActive = false;
+            function setupCountdown() {
+                const btn = document.getElementById('countdownBtn');
+                const label = document.getElementById('countdownLabel');
+                btn.addEventListener('click', () => {
+                    if (countdownActive) return;
+                    countdownActive = true;
+                    btn.classList.add('counting');
+                    let sec = 5;
+                    label.textContent = '⏳ ' + sec + 's — Focus...';
+                    const interval = setInterval(() => {
+                        sec--;
+                        if (sec <= 0) {
+                            clearInterval(interval);
+                            btn.classList.remove('counting');
+                            label.textContent = getConfig().countdownLabel;
+                            countdownActive = false;
+                            const hints = getConfig().hints;
+                            const hint = hints[Math.floor(Math.random() * hints.length)];
+                            const hintArea = document.getElementById('hintArea');
+                            hintArea.innerHTML = '<div class="hint-banner">💡 ' + hint + '</div>';
+                            setTimeout(() => { hintArea.innerHTML = ''; }, 4000);
+                            document.getElementById('weekCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        } else {
+                            label.textContent = '⏳ ' + sec + 's — Focus...';
+                        }
+                    }, 1000);
+                });
+            }
+
+            // ─── COPY AI PROMPT ────────────────────────────
+            function setupCopyPrompt() {
+                const btn = document.getElementById('copyPromptBtn');
+                const promptBox = document.getElementById('promptBox');
+                btn.addEventListener('click', () => {
+                    const promptText = promptBox.textContent.trim();
+                    navigator.clipboard.writeText(promptText).then(() => {
+                        btn.textContent = '✅ Copied!';
+                        btn.classList.add('btn--copied');
+                        showToast('📋 AI prompt copied to clipboard!', 'success');
+                        setTimeout(() => {
+                            btn.textContent = '📋 Copy AI Prompt';
+                            btn.classList.remove('btn--copied');
+                        }, 2000);
+                    }).catch(() => {
+                        showToast('Could not copy. Please select and copy manually.', 'error');
+                    });
+                });
+            }
+
+            // ─── FIREBASE SYNC (improved) ──────────────────
+            function scheduleSync() {
+                if (syncTimer) clearTimeout(syncTimer);
+                syncTimer = setTimeout(() => performSync(), 2500);
+            }
+
+            async function performSync() {
+                if (!currentUser) return;
+                setSyncState('syncing');
+                try {
+                    const docRef = db.collection('learningPanels').doc(currentUser.uid);
+                    const localData = {
+                        tasks: taskStates,
+                        streak: streak,
+                        commitment: commitment,
+                        currentWeekIndex: currentWeekIndex,
+                        completedDates: completedDates,
+                        rewards: rewards,
+                        lastUpdated: new Date().toISOString(),
+                        uid: currentUser.uid,
+                        trackerType: activeTracker,
+                    };
+                    const docSnap = await docRef.get();
+                    if (docSnap.exists) {
+                        const remote = docSnap.data();
+                        const remoteTime = remote.lastUpdated ? new Date(remote.lastUpdated).getTime() : 0;
+                        const localTime = new Date(localStorage.getItem(getStorageKeys().lastUpdated) || '1970-01-01').getTime();
+                        if (remoteTime > localTime && remote.trackerType === activeTracker) {
+                            if (remote.tasks) taskStates = { ...taskStates, ...remote.tasks };
+                            if (remote.streak !== undefined) streak = Math.max(streak, remote.streak || 0);
+                            if (remote.commitment) commitment = { ...commitment, ...remote.commitment };
+                            if (remote.currentWeekIndex !== undefined) currentWeekIndex = remote.currentWeekIndex;
+                            if (remote.completedDates) completedDates = { ...completedDates, ...remote.completedDates };
+                            if (remote.rewards) rewards = { ...rewards, ...remote.rewards };
+                            saveLocal();
+                            renderAll();
+                            showToast('📥 Loaded newer data from cloud', 'info');
+                        }
+                    }
+                    await docRef.set(localData, { merge: true });
+                    localStorage.setItem(getStorageKeys().lastUpdated, new Date().toISOString());
+                    setSyncState('synced');
+                } catch (err) {
+                    console.error('Sync failed:', err);
+                    setSyncState('failed');
+                    handleSyncError(err);
+                }
+            }
+
+            async function manualSync() {
+                if (!currentUser) {
+                    showToast('Please sign in with Google first.', 'info');
+                    return;
+                }
+                setSyncState('syncing');
+                try {
+                    const docRef = db.collection('learningPanels').doc(currentUser.uid);
+                    const docSnap = await docRef.get();
+                    if (docSnap.exists) {
+                        const remote = docSnap.data();
+                        if (remote.trackerType === activeTracker) {
+                            if (remote.tasks) taskStates = { ...taskStates, ...remote.tasks };
+                            if (remote.streak !== undefined) streak = Math.max(streak, remote.streak || 0);
+                            if (remote.commitment) commitment = { ...commitment, ...remote.commitment };
+                            if (remote.currentWeekIndex !== undefined) currentWeekIndex = remote.currentWeekIndex;
+                            if (remote.completedDates) completedDates = { ...completedDates, ...remote.completedDates };
+                            if (remote.rewards) rewards = { ...rewards, ...remote.rewards };
+                            saveLocal();
+                        }
+                    }
+                    const localData = {
+                        tasks: taskStates, streak: streak, commitment: commitment,
+                        currentWeekIndex: currentWeekIndex, completedDates: completedDates,
+                        rewards: rewards, lastUpdated: new Date().toISOString(), uid: currentUser.uid,
+                        trackerType: activeTracker,
+                    };
+                    await docRef.set(localData, { merge: true });
+                    localStorage.setItem(getStorageKeys().lastUpdated, new Date().toISOString());
+                    setSyncState('synced');
+                    renderAll();
+                    showToast('✅ Synced successfully', 'success');
+                    announceToSR('Sync completed successfully');
+                } catch (err) {
+                    console.error('Manual sync failed:', err);
+                    setSyncState('failed');
+                    handleSyncError(err);
+                }
+            }
+
+            function handleSyncError(error) {
+                let message = 'Sync Failed. ';
+                const errMsg = error.message || 'Unknown error';
+                const errCode = error.code || 'no-code';
+                message += `[${errCode}] ${errMsg}`;
+                if (errCode === 'permission-denied' || errMsg.toLowerCase().includes('permission')) {
+                    message += '\n👉 Firestore rules may be too strict. See hint below.';
+                    showFirestoreHint();
+                } else if (errCode === 'unavailable' || errMsg.toLowerCase().includes('network') || errMsg.toLowerCase().includes('offline')) {
+                    message += '\n👉 Check your internet connection.';
+                }
+                showToast(message, 'error');
+                announceToSR(message);
+            }
+
+            function showFirestoreHint() {
+                const hintArea = document.getElementById('firestoreHintArea');
+                hintArea.innerHTML = `<div class="firestore-hint">
+                    ⚠️ <strong>Sync blocked: Firestore permissions denied.</strong> In the Firebase Console → Firestore Database → Rules, paste:
+                    <br><code>rules_version = '2';
+                    service cloud.firestore {
+                      match /databases/{database}/documents {
+                        match /learningPanels/{userId} {
+                          allow read, write: if request.auth != null && request.auth.uid == userId;
+                        }
+                      }
+                    }</code>
+                    <br>Then click <strong>Publish</strong>. If you already did this, verify that your Firestore database is created in the correct region.
+                </div>`;
+            }
+
+            // ─── AUTH ──────────────────────────────────────
+            function setupAuth() {
+                document.getElementById('loginBtn').addEventListener('click', async () => {
+                    try {
+                        const result = await auth.signInWithPopup(googleProvider);
+                        currentUser = result.user;
+                        renderUserInfo();
+                        setSyncState('syncing');
+                        showToast('✅ Signed in as ' + (currentUser.displayName || 'User'), 'success');
+                        await loadFromFirestore();
+                        renderAll();
+                        setSyncState('synced');
+                    } catch (err) {
+                        console.error('Login failed:', err);
+                        showToast('Login failed. Ensure you open with localhost (see note at bottom).', 'error');
+                        setSyncState('offline');
+                    }
+                });
+                document.getElementById('logoutBtn').addEventListener('click', async () => {
+                    await auth.signOut();
+                    currentUser = null;
+                    renderUserInfo();
+                    setSyncState('offline');
+                    showToast('Signed out. Local data preserved.', 'info');
+                });
+                document.getElementById('manualSyncBtn').addEventListener('click', manualSync);
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        renderUserInfo();
+                        setSyncState('syncing');
+                        await loadFromFirestore();
+                        renderAll();
+                        setSyncState('synced');
+                    } else {
+                        currentUser = null;
+                        renderUserInfo();
+                        setSyncState('offline');
+                    }
+                });
+            }
+
+            async function loadFromFirestore() {
+                if (!currentUser) return;
+                try {
+                    const docRef = db.collection('learningPanels').doc(currentUser.uid);
+                    const docSnap = await docRef.get();
+                    if (docSnap.exists) {
+                        const remote = docSnap.data();
+                        const remoteTime = remote.lastUpdated ? new Date(remote.lastUpdated).getTime() : 0;
+                        const localTime = new Date(localStorage.getItem(getStorageKeys().lastUpdated) || '1970-01-01').getTime();
+                        if ((remoteTime > localTime || !localStorage.getItem(getStorageKeys().lastUpdated)) && remote.trackerType === activeTracker) {
+                            if (remote.tasks) taskStates = { ...taskStates, ...remote.tasks };
+                            if (remote.streak !== undefined) streak = Math.max(streak, remote.streak || 0);
+                            if (remote.commitment) commitment = { ...commitment, ...remote.commitment };
+                            if (remote.currentWeekIndex !== undefined) currentWeekIndex = remote.currentWeekIndex;
+                            if (remote.completedDates) completedDates = { ...completedDates, ...remote.completedDates };
+                            if (remote.rewards) rewards = { ...rewards, ...remote.rewards };
+                            saveLocal();
+                            showToast('📥 Loaded cloud data', 'info');
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to load from Firestore:', err);
+                    handleSyncError(err);
+                }
+            }
+
+            // ─── RESET BUTTONS ────────────────────────────
+            function setupResetButtons() {
+                document.getElementById('resetTodayBtn').addEventListener('click', () => {
+                    const wd = getWeekData();
+                    wd.tasks.forEach(t => { taskStates[t.id] = false; });
+                    const todayKey = getTodayKey();
+                    delete completedDates[todayKey];
+                    saveLocal(); renderAll(); scheduleSync();
+                    showToast('Today\'s tasks reset', 'info');
+                });
+                document.getElementById('resetWeekBtn').addEventListener('click', () => {
+                    const wd = getWeekData();
+                    wd.tasks.forEach(t => { taskStates[t.id] = false; });
+                    saveLocal(); renderAll(); scheduleSync();
+                    showToast('Week ' + wd.id + ' reset', 'info');
+                });
+                document.getElementById('resetAllBtn').addEventListener('click', () => {
+                    if (confirm('Reset ALL tasks and streak? This cannot be undone.')) {
+                        taskStates = {}; completedDates = {}; streak = 0;
+                        saveLocal(); renderAll(); scheduleSync();
+                        showToast('All progress reset', 'info');
+                    }
+                });
+            }
+
+            // ─── REWARDS ──────────────────────────────────
+            function setupRewards() {
+                document.getElementById('saveRewardsBtn').addEventListener('click', () => {
+                    rewards.r30 = document.getElementById('reward30Input').value.trim();
+                    rewards.r60 = document.getElementById('reward60Input').value.trim();
+                    saveLocal();
+                    renderCommitment();
+                    scheduleSync();
+                    showToast('✅ Rewards saved!', 'success');
+                });
+            }
+
+            
+            // --- TECH STATE ---
+            let vocabReviewed = {};
+            (function(){try{var v=JSON.parse(localStorage.getItem('techEng_vocab')||'{}');if(v&&typeof v==='object')vocabReviewed=v;}catch(e){}})();
+
+            function renderTechTasks(){
+              var wd=getWeekData();
+              document.getElementById('weekTitle').textContent=wd.title;
+              document.getElementById('weekGoal').textContent=wd.goal;
+              var cfg=getConfig();
+              document.getElementById('stageIndicator').textContent=cfg.stageNames[wd.stage]||'Stage '+wd.stage;
+              document.getElementById('stageIndicator').className='stage-indicator stage-indicator--'+wd.stage;
+              document.querySelectorAll('#resetTodayBtn,#resetWeekBtn,#resetAllBtn').forEach(function(b){b.style.display='none'});
+              var se=document.getElementById('techSearchInput');
+              var list=document.getElementById('taskList');
+              list.innerHTML='';
+              var sp=wd.special||'vocab';
+              if(sp==='pronunciation'){se.style.display='none';rTPron(wd,list);}
+              else if(sp==='templates'){se.style.display='none';rTTmpl(list);}
+              else if(sp==='cheatsheet'){se.style.display='none';rTCheat(list);}
+              else{
+                se.style.display='';
+                se.oninput=function(){rTVocab(wd,list,(se.value||'').toLowerCase());};
+                rTVocab(wd,list,(se.value||'').toLowerCase());
+              }
+              uTProg(wd);rTCollapse(wd);
+            }
+
+            function rTVocab(wd,list,f){
+              list.innerHTML='';
+              var v=wd.vocab||[];
+              var fd=f?v.filter(function(x){return x.word.toLowerCase().includes(f);}):v;
+              if(fd.length===0){list.innerHTML='<li style="padding:16px;text-align:center;color:var(--text-muted);font-size:var(--font-sm);">'+(f?'No matches':'No vocab')+'</li>';return;}
+              var g=document.createElement('div');g.className='vocab-grid';
+              fd.forEach(function(x){
+                var c=document.createElement('div');
+                c.className='vocab-card'+(vocabReviewed[x.word]?' vocab-card--reviewed':'');
+                var h='<div><span class="vocab-word">'+x.word+'</span>';
+                if(x.pronunciation)h+='<span class="vocab-pron">'+x.pronunciation+'</span>';
+                h+='</div>';
+                if(x.definition)h+='<div class="vocab-def">'+x.definition+'</div>';
+                if(x.codeContext)h+='<div class="vocab-code">'+x.codeContext+'</div>';
+                if(x.interviewSentence)h+='<div class="vocab-interview">&#x1F4AC; '+x.interviewSentence+'</div>';
+                var st=vocabReviewed[x.word]?'&#x2713; Reviewed':'Mark Reviewed';
+                var cl='vocab-btn'+(vocabReviewed[x.word]?' vocab-btn--done':'');
+                h+='<button class="'+cl+'" data-word="'+x.word.replace(/"/g,'&quot;')+'">'+st+'</button>';
+                c.innerHTML=h;g.appendChild(c);
+              });
+              list.appendChild(g);
+              list.querySelectorAll('.vocab-btn').forEach(function(b){
+                b.addEventListener('click',function(e){e.stopPropagation();tV(b.getAttribute('data-word'));});
+              });
+            }
+
+            function tV(w){
+              vocabReviewed[w]=!vocabReviewed[w];
+              localStorage.setItem('techEng_vocab',JSON.stringify(vocabReviewed));
+              var tk=getTodayKey();
+              if(vocabReviewed[w]&&!completedDates[tk]){
+                completedDates[tk]=true;
+                var ns=1,d=new Date();
+                for(var i=1;i<=365;i++){
+                  d.setDate(d.getDate()-1);
+                  var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+                  if(completedDates[k])ns++;else break;
+                }
+                streak=ns;saveLocal();animateStreak();
+              }
+              saveLocal();scheduleSync();renderTechTasks();
+            }
+
+            function rTPron(wd,list){
+              var data=wd.pronunciationData||[];
+              var h='<p style="font-size:var(--font-sm);color:var(--text-muted);margin-bottom:8px;">Commonly mispronounced words.</p><table class="pron-table"><thead><tr><th>Word</th><th>Pronunciation</th><th>Sounds Like</th></tr></thead><tbody>';
+              data.forEach(function(r){h+='<tr><td><strong>'+r.w+'</strong></td><td>'+r.pron+'</td><td><em>'+r.sounds+'</em></td></tr>';});
+              h+='</tbody></table>';
+              list.innerHTML='<li style="padding:0;background:transparent;cursor:default;min-height:auto;">'+h+'</li>';
+            }
+
+            function rTTmpl(list){
+              var t=[
+                {s:'"I built a [UI/API] automation framework using [Selenium/RestAssured] and Java."'},
+                {s:'"I chose [TestNG] because [it supports grouping and parallel execution]."'},
+                {s:'"When [StaleElementReferenceException] occurs I [re-find the element]."'},
+                {s:'"For every feature I write three types: normal edge and negative."'},
+                {s:'"Read the error first then check the most recent change."'},
+              ];
+              var h='<div class="tech-templates">';
+              t.forEach(function(x){h+='<div class="tech-template"><strong>&#x1F4DD; Template:</strong><br>'+x.s+'</div>';});
+              h+='</div>';
+              list.innerHTML='<li style="padding:0;background:transparent;cursor:default;min-height:auto;">'+h+'</li>';
+            }
+
+            function rTCheat(list){
+              var its=[
+                ['framework','Project for writing tests'],['assertion','Check verifying expected result'],
+                ['locator','Find page elements in Selenium'],['POM','Each page its own class'],
+                ['dependency','Library managed by Maven'],['endpoint','URL + API action'],
+                ['serialization','Java to JSON'],['parallel','Run tests simultaneously'],
+                ['flaky test','Passes/fails randomly'],['regression','New code breaks old features'],
+                ['CI/CD','Auto test on push'],['headless','Browser without window'],
+                ['coverage','How much tested'],['defect','Software problem'],
+                ['root cause','Why something broke'],
+              ];
+              var h='<p style="font-size:var(--font-sm);color:var(--text-muted);margin-bottom:8px;">Quick Reference: Most Common SDET Interview Words</p><div class="tech-cheatsheet">';
+              its.forEach(function(x){h+='<div class="tech-cheat-item"><span class="tech-cheat-word">'+x[0]+'</span><span class="tech-cheat-def">'+x[1]+'</span></div>';});
+              h+='</div>';
+              list.innerHTML='<li style="padding:0;background:transparent;cursor:default;min-height:auto;">'+h+'</li>';
+            }
+
+            function rTCollapse(wd){
+              var body=document.getElementById('mistakesBody');
+              body.innerHTML='<div class="tech-rules"><h4 style="margin-bottom:6px;">&#x1F4D6; How to Use This Document</h4>'+
+                '<div class="tech-rule"><strong>Rule 1:</strong> Open when you start a new week.</div>'+
+                '<div class="tech-rule"><strong>Rule 2:</strong> Read vocab before coding.</div>'+
+                '<div class="tech-rule"><strong>Rule 3:</strong> Pick 3 words daily write 1 sentence each.</div>'+
+                '<div class="tech-rule"><strong>Rule 4:</strong> Buffer weeks review past 4 without looking.</div>'+
+                '<div class="tech-rule"><strong>Rule 5:</strong> Mark forgotten words review first.</div>';
+              var wv=wd.vocab||[];
+              if(wv.length>0){
+                var tags='';
+                wv.slice(0,30).forEach(function(v){tags+='<span style="background:#EDE9FE;color:var(--purple-dark);padding:3px 8px;border-radius:999px;font-size:var(--font-xs);font-weight:500;">'+v.word+'</span>';});
+                body.innerHTML+='<div style="margin-top:10px;"><strong style="font-size:var(--font-sm);color:var(--text-secondary);">&#x1F3F7;&#xFE0F; This week's words:</strong><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">'+tags+'</div></div>';
+              }
+            }
+
+            function uTProg(wd){
+              var v=wd.vocab||[];var t=v.length,d=0;
+              v.forEach(function(x){if(vocabReviewed[x.word])d++;});
+              var p=t>0?Math.round((d/t)*100):0;
+              document.getElementById('weekProgressText').textContent=d+'/'+t+' reviewed';
+              document.getElementById('weekProgressBar').style.width=p+'%';
+              document.getElementById('streakCount').textContent=streak;
+              updateMilestoneRing();
+            }
+
+// ─── COLLAPSIBLE ──────────────────────────────
+            function setupCollapsible() {
+                const toggle = document.getElementById('mistakesToggle');
+                const content = document.getElementById('mistakesContent');
+                const arrow = document.getElementById('mistakesArrow');
+                let open = false;
+                toggle.addEventListener('click', () => {
+                    open = !open;
+                    content.classList.toggle('open', open);
+                    arrow.classList.toggle('open', open);
+                    toggle.setAttribute('aria-expanded', open);
+                });
+            }
+
+            // ─── COMMITMENT SAVE ──────────────────────────
+            function setupCommitment() {
+                document.getElementById('saveCommitBtn').addEventListener('click', () => {
+                    commitment.time = document.getElementById('commitTime').value.trim();
+                    commitment.location = document.getElementById('commitLocation').value.trim();
+                    saveLocal(); renderCommitment(); scheduleSync();
+                    showToast('✅ Promise saved! Every day at ' + (commitment.time || '___') + ', at ' + (commitment.location || '___') + '.', 'success');
+                });
+            }
+
+            // ─── TRACKER SWITCH ───────────────────────────
+            function setupTrackerToggle() {
+                const buttons = document.querySelectorAll('.tracker-toggle__btn');
+                buttons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const newTracker = btn.dataset.tracker;
+                        if (newTracker === activeTracker) return;
+                        activeTracker = newTracker;
+                        localStorage.setItem('current_tracker', activeTracker);
+                        buttons.forEach(b => {
+                            b.classList.remove('tracker-toggle__btn--active');
+                            b.setAttribute('aria-pressed', 'false');
+                        });
+                        btn.classList.add('tracker-toggle__btn--active');
+                        btn.setAttribute('aria-pressed', 'true');
+                        // reload state for the new tracker
+                        currentWeekIndex = 0;
+                        taskStates = {};
+                        streak = 0;
+                        commitment = { time: '', location: '' };
+                        completedDates = {};
+                        rewards = { r30: '', r60: '' };
+                        loadLocal();
+                        renderAll();
+                        setSyncState(currentUser ? 'synced' : 'offline');
+                        if (currentUser) { scheduleSync(); }
+                    });
+                });
+            }
+
+            // ─── INIT ─────────────────────────────────────
+            function init() {
+                loadLocal();
+                setupAuth();
+                setupCountdown();
+                setupResetButtons();
+                setupCollapsible();
+                setupCommitment();
+                setupRewards();
+                setupCopyPrompt();
+                setupTrackerToggle();
+                // set active toggle visual
+                document.querySelectorAll('.tracker-toggle__btn').forEach(btn => {
+                    btn.classList.toggle('tracker-toggle__btn--active', btn.dataset.tracker === activeTracker);
+                    btn.setAttribute('aria-pressed', btn.dataset.tracker === activeTracker ? 'true' : 'false');
+                });
+                renderAll();
+                const todayKey = getTodayKey();
+                const wd = getWeekData();
+                const anyDone = wd.tasks.some(t => taskStates[t.id]);
+                if (anyDone && !completedDates[todayKey]) {
+                    completedDates[todayKey] = true;
+                    let newStreak = 1;
+                    const d = new Date();
+                    for (let i = 1; i <= 365; i++) {
+                        d.setDate(d.getDate() - 1);
+                        const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                        if (completedDates[key]) newStreak++;
+                        else break;
+                    }
+                    streak = newStreak;
+                    saveLocal();
+                }
+                document.getElementById('streakCount').textContent = streak;
+                updateMilestoneRing();
+                setTimeout(() => { document.getElementById('mistakesToggle').click(); }, 300);
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>            
